@@ -1,0 +1,4 @@
+name: MMStats
+version: '${project.version}'
+main: me.lehreeeee.mmstats.MMStats
+api-version: '1.21'
