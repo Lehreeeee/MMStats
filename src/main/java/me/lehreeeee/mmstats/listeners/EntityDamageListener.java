@@ -14,25 +14,31 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
-public class EntityDamageListener {
+public class EntityDamageListener implements Listener {
 
     private final MMStats plugin;
+    private final Logger logger;
     private final MobStatsManager mobStatsManager;
     private final MythicMobsManager mythicMobsManager;
-    private final String debugPrefix;
 
-    public EntityDamageListener(MMStats plugin, MobStatsManager mobStatsManager, MythicMobsManager mythicMobsManager, String debugPrefix){
+    public EntityDamageListener(MMStats plugin, MobStatsManager mobStatsManager, MythicMobsManager mythicMobsManager){
         this.plugin = plugin;
         this.mobStatsManager = mobStatsManager;
         this.mythicMobsManager = mythicMobsManager;
-        this.debugPrefix = debugPrefix;
+        this.logger = plugin.getLogger();
+        Bukkit.getPluginManager().registerEvents(this,plugin);
     };
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onAttack(PlayerAttackEvent event) {
+
+        //logger.info("PlayerAttackEvent Captured.");
 
         AttackMetadata attack = event.getAttack();
         Entity victim = attack.getTarget();
@@ -44,29 +50,53 @@ public class EntityDamageListener {
 
         // Is it a mythicmobs?
         if(!mythicMobsManager.isMythicMob((LivingEntity) victim)) {
-            Bukkit.getLogger().info(debugPrefix+"Victim " + victim.getName() + " is not mythicmobs.");
+            logger.info("Victim " + victim.getName() + " is not mythicmobs.");
             return;
         }
+
+        // Get internal name of this mob
+        String internalName = mythicMobsManager.getInternalName(victim.getUniqueId());
 
         // Imagine having no stat
-        if(!mobStatsManager.hasMobStats(mythicMobsManager.getInternalName(victim.getUniqueId()))){
+        if(!mobStatsManager.hasMobStats(internalName)){
+            logger.info("Victim " + victim.getName() + " does not have stats.");
             return;
         }
 
+        // TODO: Check if this damage is mythiclib only and does not include damage from AE or MCMMO
+        // Get damage meta data
         DamageMetadata damage = attack.getDamage();
 
-        Optional<ActiveMob> activeMob = MythicBukkit.inst().getMobManager().getActiveMob(victim.getUniqueId());
-        String internalName = activeMob.get().getType().getInternalName();
+        // Get the stats of the mob
+        Map<String, Object> mobStats = mobStatsManager.getMobStats(internalName);
 
-        //
+        StringBuilder typeBuilder = new StringBuilder(); // Create a StringBuilder to collect types
+        damage.collectTypes().forEach(type -> {
+            typeBuilder.append(type).append(", "); // Append each type followed by a comma
+        });
 
-        if(internalName.equalsIgnoreCase("v_dummy") && damage.hasElement(Element.valueOf("INA"))) {
+        // Remove the last comma and space if there are any types collected
+        if (typeBuilder.length() > 0) {
+            typeBuilder.setLength(typeBuilder.length() - 2); // Remove last comma and space
+        }
+
+        // Log all types found in the damage
+        logger.info( "Damage Types: " + typeBuilder.toString());
+
+
+//        // Example of how to adjust damage based on stats
+//        if (mobStats.containsKey(MobStat.DAMAGE_REDUCTION.getStatName())) {
+//            Integer damageReduction = (Integer) mobStats.get(MobStat.DAMAGE_REDUCTION.getStatName());
+//            adjustedDamage -= damageReduction; // Apply damage reduction
+//        }
+//
+//        if(damage.hasElement(Element.valueOf("INA"))) {
 //            Bukkit.getLogger().info(debugPrefix+"v_dummy detected, adding 10 ina damage.");
 //            damage.add(10, Element.valueOf("INA")); // add 10 weapon-physical damage
-
-            Bukkit.getLogger().info(debugPrefix+"v_dummy detected, doing 50% more ina element damage.");
-            damage.multiplicativeModifier(1.5, Element.valueOf("INA")); // increase skill damage by 50%
-        }
+//
+//            Bukkit.getLogger().info(debugPrefix+"v_dummy detected, doing 50% more ina element damage.");
+//            damage.multiplicativeModifier(1.5, Element.valueOf("INA")); // increase skill damage by 50%
+//        }
     }
 
 }

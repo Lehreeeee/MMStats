@@ -12,10 +12,12 @@ import javax.swing.text.html.parser.Entity;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public final class MMStats extends JavaPlugin {
 
     private final String debugPrefix = "[MMStats Debug] ";
+    private final Logger logger = getLogger();
     private MobStatsManager mobStatsManager;
     private MythicMobsManager mythicMobsManager;
 
@@ -29,14 +31,14 @@ public final class MMStats extends JavaPlugin {
         mobStatsManager.loadMobStats();
         mythicMobsManager = new MythicMobsManager(this);
 
-        new EntityDamageListener(this, mobStatsManager, mythicMobsManager, debugPrefix);
+        new EntityDamageListener(this, mobStatsManager, mythicMobsManager);
 
-        getLogger().info("Enabled MMStats...");
+        logger.info("Enabled MMStats...");
     }
 
     @Override
     public void onDisable() {
 
-        getLogger().info("Disabled MMStats...");
+        logger.info("Disabled MMStats...");
     }
 }
