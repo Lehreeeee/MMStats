@@ -76,12 +76,32 @@ public class EntityDamageListener implements Listener {
         });
 
         // Remove the last comma and space if there are any types collected
-        if (typeBuilder.length() > 0) {
+        if (!typeBuilder.isEmpty()) {
             typeBuilder.setLength(typeBuilder.length() - 2); // Remove last comma and space
         }
 
         // Log all types found in the damage
         logger.info( "Damage Types: " + typeBuilder.toString());
+
+        // TODO: Make sure no negative cooefficient
+        if (mobStats.containsKey("damage_reduction")) {
+            Integer damageReductionValue = (Integer) mobStats.get("damage_reduction");
+
+            // Check if damage reduction is present and valid
+            if (damageReductionValue != null) {
+                // Convert to float for calculating modifier
+                float damageReduction = damageReductionValue / 100f;
+
+                // Apply the damage reduction modifier
+                damage.multiplicativeModifier(1 - damageReduction);
+
+                // Optionally, log the applied modifiers for debugging
+                logger.info("Applied damage reduction: " + damageReductionValue + "%, Modifier set to: " + (1 - damageReduction));
+            } else {
+                logger.warning("Damage reduction stat not found for mob: " + internalName);
+            }
+        }
+
 
 
 //        // Example of how to adjust damage based on stats

@@ -1,4 +1,14 @@
 name: MMStats
 version: '${project.version}'
 main: me.lehreeeee.mmstats.MMStats
+author: Lehreeeee
+description: A plugin to allow MythicMobs use Mythiclib compatible stats.
 api-version: '1.21'
+
+commands:
+  mmstats:
+    description: Main command for MMStats
+    usage: "/mmstats [reload]"
+    aliases: mms
+    permission: mms.admin
+    permission-message: You need permission for that!

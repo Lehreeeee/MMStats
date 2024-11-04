@@ -1,5 +1,7 @@
 package me.lehreeeee.mmstats;
 
+import me.lehreeeee.mmstats.commands.MMStatsCommand;
+import me.lehreeeee.mmstats.commands.MMStatsCommandTabCompleter;
 import me.lehreeeee.mmstats.listeners.EntityDamageListener;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.managers.MythicMobsManager;
@@ -29,6 +31,10 @@ public final class MMStats extends JavaPlugin {
 
         mobStatsManager = new MobStatsManager(this);
         mobStatsManager.loadMobStats();
+
+        getCommand("mmstats").setExecutor(new MMStatsCommand(this, mobStatsManager));
+        getCommand("mmstats").setTabCompleter(new MMStatsCommandTabCompleter());
+
         mythicMobsManager = new MythicMobsManager(this);
 
         new EntityDamageListener(this, mobStatsManager, mythicMobsManager);
