@@ -1,0 +1,9 @@
+mythic_mobs:
+  v_dummy:
+    damage_reduction: 10
+    projectile_reduction: 5
+    elements:
+      void_reduction: 5
+  test01:
+    damage_reduction: 50
+    projectile_reduction: 25
