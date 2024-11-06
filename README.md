@@ -2,10 +2,10 @@
 # MMStats
 **Note**: This project is currently still in development
 
-MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats will be used to either make the mobs take more or less damage from players.
+MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats will be used to either make the mobs take more or less damage from players. Making this plugin because MythicMobs doesn't support mob stats that is compatible to MMOLib damage.
+
 ## Features
-- When an entity is being tracked, a scoreboard is created using the UUID as the scoreboard name. All damage dealt by players to the entity is recorded, except for fire damage (e.g., from Fire Aspect and Flame enchantments).
-- Automatically cleans up the list and existing scoreboards when the server is stopping.
+- Damage dealt to the mobs will be affected by the mob stats set in `config.yml`.
 
 ## Dependencies
 
