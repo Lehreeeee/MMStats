@@ -1,9 +1,23 @@
+debug: false
 mythic_mobs:
+  # Example
+  # v_dummy:
+  #   damage_reduction: 0
+  #   magic_reduction: 0
+  #   physical_reduction: 0
+  #   weapon_reduction: 0
+  #   skill_reduction: 0
+  #   projectile_reduction: 0
+  #   unarmed_reduction: 0
+  #   on_hit_reduction: 0
+  #   minion_reduction: 0
+  #   dot_reduction: 0
+  #   elements:
+  #     void_reduction: 0
   v_dummy:
     damage_reduction: 10
-    projectile_reduction: 5
+    magic_reduction: 20
+    weapon_reduction: 30
+    skill_reduction: 40
     elements:
-      void_reduction: 5
-  test01:
-    damage_reduction: 50
-    projectile_reduction: 25
+      void_reduction: 50

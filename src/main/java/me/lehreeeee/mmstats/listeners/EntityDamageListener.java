@@ -5,6 +5,7 @@ import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.lib.api.event.PlayerAttackEvent;
 import io.lumine.mythic.lib.damage.AttackMetadata;
 import io.lumine.mythic.lib.damage.DamageMetadata;
+import io.lumine.mythic.lib.damage.DamageType;
 import io.lumine.mythic.lib.element.Element;
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
@@ -16,9 +17,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class EntityDamageListener implements Listener {
 
@@ -41,16 +42,11 @@ public class EntityDamageListener implements Listener {
         //logger.info("PlayerAttackEvent Captured.");
 
         AttackMetadata attack = event.getAttack();
-        Entity victim = attack.getTarget();
-
-        // Ignore ded victim
-        if (!(victim instanceof LivingEntity)) {
-            return;
-        }
+        LivingEntity victim = attack.getTarget();
 
         // Is it a mythicmobs?
-        if(!mythicMobsManager.isMythicMob((LivingEntity) victim)) {
-            logger.info("Victim " + victim.getName() + " is not mythicmobs.");
+        if(!mythicMobsManager.isMythicMob(victim)) {
+            debugLogger("Victim " + victim.getName() + " is not mythicmobs.");
             return;
         }
 
@@ -59,7 +55,7 @@ public class EntityDamageListener implements Listener {
 
         // Imagine having no stat
         if(!mobStatsManager.hasMobStats(internalName)){
-            logger.info("Victim " + victim.getName() + " does not have stats.");
+            debugLogger("Victim " + victim.getName() + " does not have stats.");
             return;
         }
 
@@ -70,37 +66,68 @@ public class EntityDamageListener implements Listener {
         // Get the stats of the mob
         Map<String, Object> mobStats = mobStatsManager.getMobStats(internalName);
 
-        StringBuilder typeBuilder = new StringBuilder(); // Create a StringBuilder to collect types
-        damage.collectTypes().forEach(type -> {
-            typeBuilder.append(type).append(", "); // Append each type followed by a comma
-        });
+        // Get all damage types
+        Set<DamageType> damageTypes = new HashSet<>(damage.collectTypes());
+        // Get all element types
+        Set<Element> elementTypes = new HashSet<>(damage.collectElements());
 
-        // Remove the last comma and space if there are any types collected
-        if (!typeBuilder.isEmpty()) {
-            typeBuilder.setLength(typeBuilder.length() - 2); // Remove last comma and space
+        // Convert to string name of the element for debug logging
+        Set<String> elementStrings = elementTypes.stream()
+                .map(Element::getName)
+                .collect(Collectors.toSet());
+
+        // WTF HOW?!
+        if(damageTypes.isEmpty() && elementTypes.isEmpty()) {
+            logger.warning("Found unknown damage type to mob: " + internalName);
+            return;
         }
 
         // Log all types found in the damage
-        logger.info( "Damage Types: " + typeBuilder.toString());
+        debugLogger( "Damage Types: " + damageTypes);
+        debugLogger("Element Types: " + elementStrings);
 
-        // TODO: Make sure no negative cooefficient
-        if (mobStats.containsKey("damage_reduction")) {
-            Integer damageReductionValue = (Integer) mobStats.get("damage_reduction");
+        // Iterate through all damage types and perform damage reduction
 
-            // Check if damage reduction is present and valid
-            if (damageReductionValue != null) {
-                // Convert to float for calculating modifier
-                float damageReduction = damageReductionValue / 100f;
+        for(DamageType damageType : damageTypes) {
+            String key = damageType.toString().toLowerCase() + "_reduction";
 
-                // Apply the damage reduction modifier
-                damage.multiplicativeModifier(1 - damageReduction);
+            // Check if the key is valid and present in mobStats
+            if (mobStats.containsKey(key)){
+                Integer damageReductionValue = (Integer) mobStats.get(key);
+                performDamageReduction(damage, damageType, damageReductionValue, internalName);
+            }
 
-                // Optionally, log the applied modifiers for debugging
-                logger.info("Applied damage reduction: " + damageReductionValue + "%, Modifier set to: " + (1 - damageReduction));
-            } else {
-                logger.warning("Damage reduction stat not found for mob: " + internalName);
+        }
+
+        if(!elementTypes.isEmpty() && mobStats.containsKey("elements")){
+            Object elementsObj = mobStats.get("elements");
+            Map<String, Integer> elementStats = new HashMap<>();
+
+            // Cast Obj back to Map
+            if(elementsObj instanceof Map){
+                try{
+                    elementStats = (Map<String, Integer>) elementsObj;
+                }
+                catch(ClassCastException ex){
+                    logger.warning(ex.getMessage());
+                }
+            }
+
+            // Iterate through all damage types and perform damage reduction
+            for (Element elementType : elementTypes) {
+                String key = elementType.getName().toLowerCase() + "_reduction";
+                // logger.info(String.format("%s - %s - %s", elementType, key, elementStats.get(key)));
+                Integer damageReductionValue = elementStats.get(key);
+                performDamageReduction(damage, elementType, damageReductionValue, internalName);
             }
         }
+
+        // General damage
+        if(mobStats.containsKey("damage_reduction")) {
+            Integer damageReductionValue = (Integer) mobStats.get("damage_reduction");
+            performDamageReduction(damage, null, damageReductionValue, internalName);
+        }
+
 
 
 
@@ -117,6 +144,41 @@ public class EntityDamageListener implements Listener {
 //            Bukkit.getLogger().info(debugPrefix+"v_dummy detected, doing 50% more ina element damage.");
 //            damage.multiplicativeModifier(1.5, Element.valueOf("INA")); // increase skill damage by 50%
 //        }
+    }
+
+    private <T> void performDamageReduction(DamageMetadata damage, T type, Integer damageReductionValue, String internalName){
+        // For logging because Element returns io.lumine.mythic.lib.element.Element@12345 without .getName() >:(
+        String typeName = (type instanceof Element) ? ((Element) type).getName() : Objects.requireNonNullElse(type, "GENERAL").toString();
+        Double originalDamage = damage.getDamage();
+
+        // Do reduction when its not null
+        if(damageReductionValue != null) {
+            // Convert to float for calculating modifier
+            float damageReduction = damageReductionValue / 100f;
+            float finalReduction = Math.max(1 - damageReduction, 0);
+
+            switch (type) {
+                // Apply the general damage reduction modifier
+                case null -> damage.multiplicativeModifier(finalReduction);
+                // Apply the other damage reduction modifier
+                case DamageType damageType -> damage.multiplicativeModifier(finalReduction, damageType);
+                // Apply the elemental damage reduction modifier
+                case Element element -> damage.multiplicativeModifier(finalReduction, element);
+                default -> logger.warning("Failed to perform damage reduction: Unknown damage type!");
+            }
+
+            // Log reduction for debugging
+            debugLogger("Applied " + typeName + " reduction: " + damageReductionValue);
+            debugLogger("Damage changes: " + originalDamage + " -> " + damage.getDamage());
+        }
+        else{
+            logger.warning("Reduction stat " + typeName + " not found for mob " + internalName);
+        }
+    }
+
+    public void debugLogger(String debugMessage){
+        if(plugin.getConfig().getBoolean("debug",false))
+            logger.info(debugMessage);
     }
 
 }
