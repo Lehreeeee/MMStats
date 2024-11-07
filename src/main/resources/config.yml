@@ -1,23 +1,39 @@
-debug: false
+# Enable to log Damage/Element Types of the damage instance and reduction info of the damage.
+# DO NOT ENABLE IN PRODUCTION SERVER, IT SPAMS THE CONSOLE
+debug: true
+
+# Acceptable stat value: -469762049 ~ 100 (Except 0 because why?)
+# Negative value will make the mob take more damage instead.
+# Putting value that's not in the range will cause the stat to be ignored..... and spams the console when you reload :suiwheeze:
 mythic_mobs:
-  # Example
-  # v_dummy:
-  #   damage_reduction: 0
-  #   magic_reduction: 0
-  #   physical_reduction: 0
-  #   weapon_reduction: 0
-  #   skill_reduction: 0
-  #   projectile_reduction: 0
-  #   unarmed_reduction: 0
-  #   on_hit_reduction: 0
-  #   minion_reduction: 0
-  #   dot_reduction: 0
-  #   elements:
-  #     void_reduction: 0
+  # Template here, replace v_dummy with MythicMobs internal mob name, remove the stat if you don't need it, don't put 0. :amewtf:
+  #   v_dummy:
+  #     damage_reduction: 10
+  #     magic_reduction: 20
+  #     physical_reduction: 30
+  #     weapon_reduction: 40
+  #     skill_reduction: 50
+  #     projectile_reduction: 60
+  #     unarmed_reduction: 70
+  #     on_hit_reduction: 80
+  #     minion_reduction: 90
+  #     dot_reduction: 100
+  #     elements:
+  #       void_reduction: -50
   v_dummy:
     damage_reduction: 10
     magic_reduction: 20
-    weapon_reduction: 30
-    skill_reduction: 40
+    physical_reduction: 30
+    weapon_reduction: 20
+    skill_reduction: 10
+    projectile_reduction: 20
+    unarmed_reduction: 10
+    on_hit_reduction: 20
+    minion_reduction: 10
+    dot_reduction: 20
     elements:
-      void_reduction: 50
+      void_reduction: -100
+  test01:
+    damage_reduction: 100
+    elements:
+      void_reduction: 10

@@ -47,19 +47,27 @@ public class MobStatsManager {
         // Load stats
         for (String statKey : config.getConfigurationSection(basePath).getKeys(false)) {
             String path = basePath + "." + statKey;
+            int statValue = 0;
 
             // If its nested stats & elements section
             if (config.isConfigurationSection(path) && path.endsWith(".elements")) {
                 Map<String, Integer> elementStats = new HashMap<>();
                 for (String nestedKey : config.getConfigurationSection(path).getKeys(false)) {
-                    elementStats.put(nestedKey, config.getInt(path + "." + nestedKey));
+                    statValue = config.getInt(path + "." + nestedKey,0);
+                    if (statValue != 0 && statValue <= 100)
+                        elementStats.put(nestedKey, statValue);
+                    else
+                        logger.warning("Found and ignored unusual stat " + statValue + " at " + path + "." + nestedKey + ", misconfiguration?");
                 }
                 stats.put(statKey, elementStats);
             } else {
-                stats.put(statKey, config.getInt(path));
+                statValue = config.getInt(path,0);
+                if (statValue != 0 && statValue <= 100)
+                    stats.put(statKey, statValue);
+                else
+                    logger.warning("Found and ignored unusual stat " + statValue + " at " + path + ", misconfiguration?");
             }
         }
-
         return stats;
     }
 

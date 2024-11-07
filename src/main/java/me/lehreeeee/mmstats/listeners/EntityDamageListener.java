@@ -38,9 +38,6 @@ public class EntityDamageListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onAttack(PlayerAttackEvent event) {
-
-        //logger.info("PlayerAttackEvent Captured.");
-
         AttackMetadata attack = event.getAttack();
         LivingEntity victim = attack.getTarget();
 
@@ -83,22 +80,21 @@ public class EntityDamageListener implements Listener {
         }
 
         // Log all types found in the damage
-        debugLogger( "Damage Types: " + damageTypes);
-        debugLogger("Element Types: " + elementStrings);
+        debugLogger( "Damage Types: " + damageTypes + " Element Types: " + elementStrings);
 
-        // Iterate through all damage types and perform damage reduction
-
+        // Iterate through all damage types and perform reduction
         for(DamageType damageType : damageTypes) {
             String key = damageType.toString().toLowerCase() + "_reduction";
 
             // Check if the key is valid and present in mobStats
             if (mobStats.containsKey(key)){
                 Integer damageReductionValue = (Integer) mobStats.get(key);
-                performDamageReduction(damage, damageType, damageReductionValue, internalName);
+                modifyDamage(damage, damageType, damageReductionValue, internalName);
             }
 
         }
 
+        // Iterate through all elemental damage types and perform reduction
         if(!elementTypes.isEmpty() && mobStats.containsKey("elements")){
             Object elementsObj = mobStats.get("elements");
             Map<String, Integer> elementStats = new HashMap<>();
@@ -116,45 +112,31 @@ public class EntityDamageListener implements Listener {
             // Iterate through all damage types and perform damage reduction
             for (Element elementType : elementTypes) {
                 String key = elementType.getName().toLowerCase() + "_reduction";
-                // logger.info(String.format("%s - %s - %s", elementType, key, elementStats.get(key)));
-                Integer damageReductionValue = elementStats.get(key);
-                performDamageReduction(damage, elementType, damageReductionValue, internalName);
+
+                // Check if the key is valid and present in elementStats
+                if (elementStats.containsKey(key)){
+                    Integer damageReductionValue = elementStats.get(key);
+                    modifyDamage(damage, elementType, damageReductionValue, internalName);
+                }
             }
         }
 
         // General damage
         if(mobStats.containsKey("damage_reduction")) {
             Integer damageReductionValue = (Integer) mobStats.get("damage_reduction");
-            performDamageReduction(damage, null, damageReductionValue, internalName);
+            modifyDamage(damage, null, damageReductionValue, internalName);
         }
-
-
-
-
-//        // Example of how to adjust damage based on stats
-//        if (mobStats.containsKey(MobStat.DAMAGE_REDUCTION.getStatName())) {
-//            Integer damageReduction = (Integer) mobStats.get(MobStat.DAMAGE_REDUCTION.getStatName());
-//            adjustedDamage -= damageReduction; // Apply damage reduction
-//        }
-//
-//        if(damage.hasElement(Element.valueOf("INA"))) {
-//            Bukkit.getLogger().info(debugPrefix+"v_dummy detected, adding 10 ina damage.");
-//            damage.add(10, Element.valueOf("INA")); // add 10 weapon-physical damage
-//
-//            Bukkit.getLogger().info(debugPrefix+"v_dummy detected, doing 50% more ina element damage.");
-//            damage.multiplicativeModifier(1.5, Element.valueOf("INA")); // increase skill damage by 50%
-//        }
     }
 
-    private <T> void performDamageReduction(DamageMetadata damage, T type, Integer damageReductionValue, String internalName){
+    private <T> void modifyDamage(DamageMetadata damage, T type, Integer statValue, String internalName){
         // For logging because Element returns io.lumine.mythic.lib.element.Element@12345 without .getName() >:(
         String typeName = (type instanceof Element) ? ((Element) type).getName() : Objects.requireNonNullElse(type, "GENERAL").toString();
-        Double originalDamage = damage.getDamage();
+        double originalDamage = damage.getDamage();
 
-        // Do reduction when its not null
-        if(damageReductionValue != null) {
+        // Do reduction when its bigger than 0
+        if(statValue > 0) {
             // Convert to float for calculating modifier
-            float damageReduction = damageReductionValue / 100f;
+            float damageReduction = statValue / 100f;
             float finalReduction = Math.max(1 - damageReduction, 0);
 
             switch (type) {
@@ -168,11 +150,32 @@ public class EntityDamageListener implements Listener {
             }
 
             // Log reduction for debugging
-            debugLogger("Applied " + typeName + " reduction: " + damageReductionValue);
+            debugLogger("Applied " + typeName + " reduction: " + statValue + "%");
             debugLogger("Damage changes: " + originalDamage + " -> " + damage.getDamage());
         }
-        else{
-            logger.warning("Reduction stat " + typeName + " not found for mob " + internalName);
+        // Do amplification when its negative
+        else if(statValue < 0){
+            statValue = Math.abs(statValue);
+            // Convert to float for calculating modifier
+            float damageAmplification = statValue / 100f;
+            float finalAmplification = Math.max(1 + damageAmplification, 0);
+
+            switch (type) {
+                // Apply the general damage reduction modifier
+                case null -> damage.multiplicativeModifier(finalAmplification);
+                // Apply the other damage reduction modifier
+                case DamageType damageType -> damage.multiplicativeModifier(finalAmplification, damageType);
+                // Apply the elemental damage reduction modifier
+                case Element element -> damage.multiplicativeModifier(finalAmplification, element);
+                default -> logger.warning("Failed to perform damage amplification: Unknown damage type!");
+            }
+
+            // Log reduction for debugging
+            debugLogger("Applied " + typeName + " amplification: " + statValue + "%");
+            debugLogger("Damage changes: " + originalDamage + " -> " + damage.getDamage());
+        }
+        else {
+            logger.warning("Amplification stat " + typeName + " not found for mob " + internalName);
         }
     }
 
