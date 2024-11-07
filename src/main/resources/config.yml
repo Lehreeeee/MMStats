@@ -1,6 +1,6 @@
 # Enable to log Damage/Element Types of the damage instance and reduction info of the damage.
 # DO NOT ENABLE IN PRODUCTION SERVER, IT SPAMS THE CONSOLE
-debug: true
+debug: false
 
 # Acceptable stat value: -469762049 ~ 100 (Except 0 because why?)
 # Negative value will make the mob take more damage instead.
