@@ -134,12 +134,12 @@ public class MobStatsManager {
         return mobStatsMap;
     }
 
-    public Map<String, Integer> getMobTempStats(UUID uuid) {
-        return mobTempStatsMap.getOrDefault(uuid, new HashMap<>());
+    public boolean hasMobTempStats(UUID uuid) {
+        return mobTempStatsMap.containsKey(uuid);
     }
 
-    public Map<UUID, Map<String, Integer>> getMobTempStatsMap() {
-        return mobTempStatsMap;
+    public Map<String, Integer> getMobTempStats(UUID uuid) {
+        return mobTempStatsMap.getOrDefault(uuid, new HashMap<>());
     }
 
     public void debugLogger(String debugMessage){

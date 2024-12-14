@@ -40,6 +40,7 @@ public class EntityDamageListener implements Listener {
     public void onAttack(PlayerAttackEvent event) {
         AttackMetadata attack = event.getAttack();
         LivingEntity victim = attack.getTarget();
+        UUID uuid = victim.getUniqueId();
 
         // Is it a mythicmobs?
         if(!mythicMobsManager.isMythicMob(victim)) {
@@ -48,10 +49,10 @@ public class EntityDamageListener implements Listener {
         }
 
         // Get internal name of this mob
-        String internalName = mythicMobsManager.getInternalName(victim.getUniqueId());
+        String internalName = mythicMobsManager.getInternalName(uuid);
 
         // Imagine having no stat
-        if(!mobStatsManager.hasMobStats(internalName)){
+        if(!mobStatsManager.hasMobStats(internalName) && !mobStatsManager.hasMobTempStats(uuid)){
             debugLogger("Victim " + victim.getName() + " does not have stats.");
             return;
         }
@@ -61,7 +62,7 @@ public class EntityDamageListener implements Listener {
 
         // Get the stats of the mob
         Map<String, Object> mobStats = mobStatsManager.getMobStats(internalName);
-        Map<String, Integer> mobTempStats = mobStatsManager.getMobTempStats(victim.getUniqueId());
+        Map<String, Integer> mobTempStats = mobStatsManager.getMobTempStats(uuid);
 
         // Get all damage types
         Set<DamageType> damageTypes = new HashSet<>(damage.collectTypes());
@@ -85,15 +86,15 @@ public class EntityDamageListener implements Listener {
         // Iterate through all damage types and perform reduction
         for(DamageType damageType : damageTypes) {
             String key = damageType.toString().toLowerCase() + "_reduction";
+            Integer damageReductionValue = 0;
 
-            // Check if the key is valid and present in mobStats
-            if (mobStats.containsKey(key)){
-                Integer damageReductionValue = (Integer) mobStats.get(key);
-                // Calculate final reduction value with temp stat
-                if(mobTempStats.containsKey(key)) damageReductionValue += mobTempStats.get(key);
+            // Set base stat if exists
+            if(mobStats.containsKey(key)) damageReductionValue = (Integer) mobStats.get(key);
 
-                modifyDamage(damage, damageType, damageReductionValue, internalName);
-            }
+            // Calculate final reduction value with temp stat
+            if(mobTempStats.containsKey(key)) damageReductionValue += mobTempStats.get(key);
+
+            modifyDamage(damage, damageType, damageReductionValue, internalName);
 
         }
 
@@ -115,23 +116,26 @@ public class EntityDamageListener implements Listener {
             // Iterate through all damage types and perform damage reduction
             for (Element elementType : elementTypes) {
                 String key = elementType.getName().toLowerCase() + "_reduction";
+                Integer damageReductionValue = 0;
 
-                // Check if the key is valid and present in elementStats
-                if (elementStats.containsKey(key)){
-                    Integer damageReductionValue = elementStats.get(key);
-                    // Calculate final reduction value with temp stat
-                    if(mobTempStats.containsKey("elements." + key)) damageReductionValue += mobTempStats.get("elements." + key);
+                // Set base stat if exists
+                if (elementStats.containsKey(key)) damageReductionValue = elementStats.getOrDefault(key,0);
 
-                    modifyDamage(damage, elementType, damageReductionValue, internalName);
-                }
+                // Calculate final reduction value with temp stat
+                if(mobTempStats.containsKey("elements." + key)) damageReductionValue += mobTempStats.get("elements." + key);
+
+                modifyDamage(damage, elementType, damageReductionValue, internalName);
             }
         }
 
         // General damage
-        if(mobStats.containsKey("damage_reduction")) {
-            Integer damageReductionValue = (Integer) mobStats.get("damage_reduction");
+        if(mobStats.containsKey("damage_reduction") || mobTempStats.containsKey("damage_reduction")) {
+
+            // Set base stat
+            Integer damageReductionValue = (Integer) mobStats.getOrDefault("damage_reduction",0);
+
             // Calculate final reduction value with temp stat
-            if(mobTempStats.containsKey("damage_reduction")) damageReductionValue += mobTempStats.get("damage_reduction");
+            damageReductionValue += mobTempStats.getOrDefault("damage_reduction",0);
 
             modifyDamage(damage, null, damageReductionValue, internalName);
         }
@@ -182,9 +186,6 @@ public class EntityDamageListener implements Listener {
             // Log reduction for debugging
             debugLogger("Applied " + typeName + " amplification: " + statValue + "%");
             debugLogger("Damage changes: " + originalDamage + " -> " + damage.getDamage());
-        }
-        else {
-            logger.warning("Amplification stat " + typeName + " not found for mob " + internalName);
         }
     }
 
