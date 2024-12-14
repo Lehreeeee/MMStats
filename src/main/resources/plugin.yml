@@ -8,7 +8,5 @@ api-version: '1.21'
 commands:
   mmstats:
     description: Main command for MMStats
-    usage: "/mmstats [reload]"
     aliases: mms
     permission: mms.admin
-    permission-message: You need permission for that!

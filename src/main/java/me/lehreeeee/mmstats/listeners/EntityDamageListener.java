@@ -56,12 +56,12 @@ public class EntityDamageListener implements Listener {
             return;
         }
 
-        // TODO: Check if this damage is mythiclib only and does not include damage from AE or MCMMO
         // Get damage meta data
         DamageMetadata damage = attack.getDamage();
 
         // Get the stats of the mob
         Map<String, Object> mobStats = mobStatsManager.getMobStats(internalName);
+        Map<String, Integer> mobTempStats = mobStatsManager.getMobTempStats(victim.getUniqueId());
 
         // Get all damage types
         Set<DamageType> damageTypes = new HashSet<>(damage.collectTypes());
@@ -89,6 +89,9 @@ public class EntityDamageListener implements Listener {
             // Check if the key is valid and present in mobStats
             if (mobStats.containsKey(key)){
                 Integer damageReductionValue = (Integer) mobStats.get(key);
+                // Calculate final reduction value with temp stat
+                if(mobTempStats.containsKey(key)) damageReductionValue += mobTempStats.get(key);
+
                 modifyDamage(damage, damageType, damageReductionValue, internalName);
             }
 
@@ -116,6 +119,9 @@ public class EntityDamageListener implements Listener {
                 // Check if the key is valid and present in elementStats
                 if (elementStats.containsKey(key)){
                     Integer damageReductionValue = elementStats.get(key);
+                    // Calculate final reduction value with temp stat
+                    if(mobTempStats.containsKey("elements." + key)) damageReductionValue += mobTempStats.get("elements." + key);
+
                     modifyDamage(damage, elementType, damageReductionValue, internalName);
                 }
             }
@@ -124,6 +130,9 @@ public class EntityDamageListener implements Listener {
         // General damage
         if(mobStats.containsKey("damage_reduction")) {
             Integer damageReductionValue = (Integer) mobStats.get("damage_reduction");
+            // Calculate final reduction value with temp stat
+            if(mobTempStats.containsKey("damage_reduction")) damageReductionValue += mobTempStats.get("damage_reduction");
+
             modifyDamage(damage, null, damageReductionValue, internalName);
         }
     }

@@ -32,10 +32,12 @@ public final class MMStats extends JavaPlugin {
         mobStatsManager = new MobStatsManager(this);
         mobStatsManager.loadMobStats();
 
-        getCommand("mmstats").setExecutor(new MMStatsCommand(this, mobStatsManager));
-        getCommand("mmstats").setTabCompleter(new MMStatsCommandTabCompleter());
-
         mythicMobsManager = new MythicMobsManager(this);
+
+        getCommand("mmstats").setExecutor(new MMStatsCommand(this, mobStatsManager, mythicMobsManager));
+        getCommand("mmstats").setTabCompleter(new MMStatsCommandTabCompleter(mobStatsManager));
+
+
 
         new EntityDamageListener(this, mobStatsManager, mythicMobsManager);
 
