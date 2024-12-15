@@ -68,14 +68,14 @@ public class MMStatsCommand implements CommandExecutor {
             return true;
         }
 
-        if(args.length == 5 && args[0].equalsIgnoreCase("edit")){
+        if(args.length == 5 && args[0].equalsIgnoreCase("temp")){
 
             try{
                 UUID uuid = UUID.fromString(args[1]);
                 Entity mob = Bukkit.getEntity(uuid);
 
                 if(!(mob instanceof LivingEntity)){
-                    sendFeedbackMessage(sender,"<#FFA500>Failed to edit stat of the mob.");
+                    sendFeedbackMessage(sender,"<#FFA500>Failed to apply temp stat to the mob.");
                     return true;
                 }
 
@@ -85,7 +85,7 @@ public class MMStatsCommand implements CommandExecutor {
                 }
 
                 mobStatsManager.applyTempStat(UUID.fromString(args[1]), args[2], Integer.parseInt(args[3]), Long.parseLong(args[4]));
-                sendFeedbackMessage(sender,"<#FFA500>Successfully edited stat of the mob.");
+                sendFeedbackMessage(sender,"<#FFA500>Successfully applied temp stat to the mob.");
                 return true;
 
             } catch (NumberFormatException e) {
@@ -116,14 +116,14 @@ public class MMStatsCommand implements CommandExecutor {
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms help - Show command usage.",false));
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms reload - Reload mob stats.",false));
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms stat [mob name] - Show stats of specific mob.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms edit [mob uuid] [stat name] [value] [duration in ms] - Apply temp stat edit.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms temp [mob uuid] [stat name] [value] [duration in ms] - Apply temp stat to a mob.",false));
         }
         else{
             logger.info("Command Usage:");
             logger.info("/mms help - Show command usage.");
             logger.info("/mms reload - Reload mob stats.");
             logger.info("/mms stat [mob name] - Show stats of specific mob.");
-            logger.info("/mms edit [mob uuid] [stat name] [duration in ms] - Apply temp stat edit.");
+            logger.info("/mms temp [mob uuid] [stat name] [duration in ms] - Apply temp stat to a mob.");
         }
     }
 

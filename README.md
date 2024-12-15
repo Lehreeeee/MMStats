@@ -12,7 +12,7 @@ MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats wi
 
 ![image](https://github.com/user-attachments/assets/c15633ca-5eb9-4bd5-abf1-78fc3cf24a9e)
 
-- Commands to temporarily adjust mob stats (Useful for support/debuff items.)
+- ~~Commands to temporarily adjust mob stats (Useful for support/debuff items.)~~ ✅
 
 
 ## Dependencies
@@ -32,3 +32,11 @@ MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats wi
 ## Commands Usage
 
 - **/mms reload**: Reload the mob stats in `config.yml`
+- **/mms stat [Mob Name]**: Check the base stats of the mob. Mob name should be the internal name you put in `config.yml`.
+- **/mms temp [UUID] [Stat Name] [Value] [Duration in ms]**: Apply temp stats to the mob, for either buff or debuff.
+  
+  Example:
+  ```
+  /mms temp 788307ef-9dbc-4ae3-a2bf-0f2e3ad3d2ea damage_reduction -20 5000
+  ```
+  (Command above reduces damage reduction of the mob by 20% for 5 seconds)
