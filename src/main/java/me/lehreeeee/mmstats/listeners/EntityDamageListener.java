@@ -1,7 +1,5 @@
 package me.lehreeeee.mmstats.listeners;
 
-import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.lib.api.event.PlayerAttackEvent;
 import io.lumine.mythic.lib.damage.AttackMetadata;
 import io.lumine.mythic.lib.damage.DamageMetadata;
@@ -11,7 +9,6 @@ import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.managers.MythicMobsManager;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -99,7 +96,7 @@ public class EntityDamageListener implements Listener {
         }
 
         // Iterate through all elemental damage types and perform reduction
-        if(!elementTypes.isEmpty() && mobStats.containsKey("elements")){
+        if(!elementTypes.isEmpty() && (mobStats.containsKey("elements") || mobStatsManager.hasMobTempElementalStats(uuid))){
             Object elementsObj = mobStats.get("elements");
             Map<String, Integer> elementStats = new HashMap<>();
 

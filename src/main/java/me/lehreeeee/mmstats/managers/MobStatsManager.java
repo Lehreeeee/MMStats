@@ -3,7 +3,6 @@ package me.lehreeeee.mmstats.managers;
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.tasks.TempStatRemovalTask;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -87,7 +86,7 @@ public class MobStatsManager {
         Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
 
         // Add the stat or update its value by summing
-        tempStats.merge(stat, value, Integer::sum);
+        tempStats.merge(stat.toLowerCase(), value, Integer::sum);
         long ticks = TimeUnit.MILLISECONDS.toSeconds(duration) * 20;
 
         // Schedule the temp stat removal
@@ -142,6 +141,17 @@ public class MobStatsManager {
 
     public boolean hasMobTempStats(UUID uuid) {
         return mobTempStatsMap.containsKey(uuid);
+    }
+
+    public boolean hasMobTempElementalStats(UUID uuid) {
+        Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
+
+        if(tempStats != null){
+            for (String key : tempStats.keySet()) {
+                if (key.startsWith("elements.")) return true;
+            }
+        }
+        return false;
     }
 
     public Map<String, Integer> getMobTempStats(UUID uuid) {

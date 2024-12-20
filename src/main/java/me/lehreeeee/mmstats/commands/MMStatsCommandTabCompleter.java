@@ -7,7 +7,6 @@ import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class MMStatsCommandTabCompleter implements TabCompleter {
     private final List<String> commands = List.of("reload", "stat", "temp");
