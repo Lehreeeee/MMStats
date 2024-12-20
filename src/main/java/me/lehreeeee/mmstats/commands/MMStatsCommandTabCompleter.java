@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MMStatsCommandTabCompleter implements TabCompleter {
-    private final List<String> commands = List.of("reload", "stat", "edit");
+    private final List<String> commands = List.of("reload", "stat", "temp");
     private final List<String> availableStats = List.of(
             "damage_reduction", "magic_reduction", "physical_reduction",
             "weapon_reduction", "skill_reduction", "projectile_reduction",
@@ -34,7 +34,7 @@ public class MMStatsCommandTabCompleter implements TabCompleter {
             return loadedMobs;
         }
 
-        if(args[0].equalsIgnoreCase("edit")){
+        if(args[0].equalsIgnoreCase("temp")){
             if(args.length == 2) return List.of("UUID");
             if(args.length == 3) return availableStats;
             if(args.length == 4) return List.of("69", "-420");

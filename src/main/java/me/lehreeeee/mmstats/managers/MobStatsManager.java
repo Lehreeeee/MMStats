@@ -105,13 +105,19 @@ public class MobStatsManager {
 
             // If the restored value is 0, debuff/buff is gone, remove the stat
             if (restoredValue == 0) {
+                debugLogger("Restored value is 0, removing from temp stats.");
                 tempStats.remove(stat);
+                if(tempStats.isEmpty()){
+                    debugLogger("No more temp stat for this mob, removing from temp stats map.");
+                    mobTempStatsMap.remove(uuid);
+                }
             } else {
+                debugLogger("Restored value is " + restoredValue + ", updating temp stats.");
                 tempStats.put(stat, restoredValue);
             }
+            debugLogger("Removed temp stat " + stat + ": " + value + " for " + uuid);
         }
-
-        debugLogger("Removed temp stat " + stat + ": " + value + " for " + uuid);
+        else debugLogger("Failed to remove temp stat " + stat + ": " + value + " for " + uuid);
     }
 
     public void logMobStats() {

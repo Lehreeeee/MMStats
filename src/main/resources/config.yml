@@ -2,7 +2,7 @@
 # DO NOT ENABLE IN PRODUCTION SERVER, IT SPAMS THE CONSOLE
 debug: false
 
-# Acceptable stat value: -469762049 ~ 100 (Except 0 because why?)
+# Acceptable stat value: -2147483648 ~ 100 (Except 0 because why?)
 # Negative value will make the mob take more damage instead.
 # Putting value that's not in the range will cause the stat to be ignored..... and spams the console when you reload :suiwheeze:
 mythic_mobs:
