@@ -85,8 +85,10 @@ public class MobStatsManager {
         mobTempStatsMap.putIfAbsent(uuid, new HashMap<>());
         Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
 
+        stat = stat.toLowerCase();
+
         // Add the stat or update its value by summing
-        tempStats.merge(stat.toLowerCase(), value, Integer::sum);
+        tempStats.merge(stat, value, Integer::sum);
         long ticks = TimeUnit.MILLISECONDS.toSeconds(duration) * 20;
 
         // Schedule the temp stat removal
