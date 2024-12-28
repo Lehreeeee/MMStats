@@ -33,7 +33,7 @@ MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats wi
 - **/mms help** - Show command usage.**
 - **/mms reload** - Reload the mob stats in `config.yml`
 - **/mms stat [Mob Name]** - Check the base stats of the mob. Mob name should be the internal name you put in `config.yml`.
-- **/mms temp [UUID] [Stat Name] [Value] [Duration in ms] [Identifier]** - Apply temp stats to the mob, for either buff or debuff.
+- **/mms temp [Mob UUID] [Stat name] [Value] [Duration in ms] [Identifier]** - Apply temp stats to the mob, for either buff or debuff.
   
   Example:
   ```
@@ -43,7 +43,7 @@ MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats wi
   "wind_effect" being it's identifier, identifier is used for force remove)
   ```
 
-- **/mms removetemp [mob uuid] [stat name] [Identifier]** - Remove temp stat from a mob.
+- **/mms removetemp [Mob UUID] [Stat name] [Identifier]** - Remove temp stat from a mob.
   
   Example:
   ```
