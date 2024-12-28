@@ -2,12 +2,12 @@ package me.lehreeeee.mmstats.managers;
 
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.tasks.TempStatRemovalTask;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -15,6 +15,7 @@ public class MobStatsManager {
     private final Map<String, Map<String, Object>> mobStatsMap = new HashMap<>();
     // Expected structure: (UUID, <"magic_reduction",10>) or (UUID, <"elements.void_reduction",10>)
     private final Map<UUID, Map<String, Integer>> mobTempStatsMap = new HashMap<>();
+    private Map<String, TempStatRemovalTask> scheduledTasks = new HashMap<>();
     private final Logger logger;
     private final MMStats plugin;
 
@@ -81,23 +82,56 @@ public class MobStatsManager {
         return stats;
     }
 
-    public void applyTempStat(UUID uuid, String stat, int value, long duration){
+    public boolean applyTempStat(UUID uuid, String stat, int value, long duration, String identifier){
+        // Example for /mms temp <target.uuid> damage_reduction 69 420 wind_debuff
+        // Can be removed using /mms removetemp <target.uuid> damage_reduction wind_debuff
+        // 6f78c9c0-044f-225d-8d01-c8d3cd37638b;damage_reduction;wind_debuff
+        stat = stat.toLowerCase();
+        identifier = identifier.toLowerCase();
+        String key = String.join(";",uuid.toString(), stat, identifier);
+
+        // Is there any existing same buff? Ignore if yes to prevent stacking.
+        if(scheduledTasks.containsKey(key)){
+            debugLogger("Temp stat key " + key + " already exists for this entity!");
+            return false;
+        }
+
         mobTempStatsMap.putIfAbsent(uuid, new HashMap<>());
         Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
-
-        stat = stat.toLowerCase();
 
         // Add the stat or update its value by summing
         tempStats.merge(stat, value, Integer::sum);
         long ticks = TimeUnit.MILLISECONDS.toSeconds(duration) * 20;
 
         // Schedule the temp stat removal
-        new TempStatRemovalTask(this, uuid, stat, value).runTaskLater(plugin, ticks);
+        TempStatRemovalTask task = new TempStatRemovalTask(this, key, value);
+        task.runTaskLater(plugin, ticks);
+        // Store it for force cancellation
+        scheduledTasks.put(key,task);
 
-        debugLogger("Added temp stat " + stat + ": " + value + " for " + uuid);
+        debugLogger("Added temp stat " + key + ": " + value);
+        return true;
     }
 
-    public void removeTempStat(UUID uuid, String stat, int value){
+    public void forceRemoveTempStat(String key){
+        TempStatRemovalTask task = scheduledTasks.get(key);
+
+        // Force run it
+        task.run();
+
+        // Cancel the scheduled task
+        task.cancel();
+    }
+
+    public void removeTempStat(String key, int value){
+        String[] info = key.split(";");
+        if(info.length != 3) {
+            plugin.getLogger().warning("Error removing temp stats for " + key);
+            return;
+        }
+
+        UUID uuid = UUID.fromString(info[0]);
+        String stat = info[1];
         Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
 
         if (tempStats != null) {
@@ -117,6 +151,7 @@ public class MobStatsManager {
                 tempStats.put(stat, restoredValue);
             }
             debugLogger("Removed temp stat " + stat + ": " + value + " for " + uuid);
+            scheduledTasks.remove(key);
         }
         else debugLogger("Failed to remove temp stat " + stat + ": " + value + " for " + uuid);
     }
@@ -143,6 +178,10 @@ public class MobStatsManager {
 
     public boolean hasMobTempStats(UUID uuid) {
         return mobTempStatsMap.containsKey(uuid);
+    }
+
+    public boolean hasScheduledTask(String key) {
+        return scheduledTasks.containsKey(key);
     }
 
     public boolean hasMobTempElementalStats(UUID uuid) {

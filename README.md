@@ -30,13 +30,27 @@ MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats wi
 6. Damage dealt to your mobs should now be affected by the stats you have set.
 
 ## Commands Usage
-
-- **/mms reload**: Reload the mob stats in `config.yml`
-- **/mms stat [Mob Name]**: Check the base stats of the mob. Mob name should be the internal name you put in `config.yml`.
-- **/mms temp [UUID] [Stat Name] [Value] [Duration in ms]**: Apply temp stats to the mob, for either buff or debuff.
+- **/mms help** - Show command usage.**
+- **/mms reload** - Reload the mob stats in `config.yml`
+- **/mms stat [Mob Name]** - Check the base stats of the mob. Mob name should be the internal name you put in `config.yml`.
+- **/mms temp [UUID] [Stat Name] [Value] [Duration in ms] [Identifier]** - Apply temp stats to the mob, for either buff or debuff.
   
   Example:
   ```
-  /mms temp 788307ef-9dbc-4ae3-a2bf-0f2e3ad3d2ea damage_reduction -20 5000
+  /mms temp 788307ef-9dbc-4ae3-a2bf-0f2e3ad3d2ea damage_reduction -20 5000 debuff
+  
+  (This reduces damage reduction of the mob by 20% for 5 seconds with
+  "wind_effect" being it's identifier, identifier is used for force remove)
   ```
-  (Command above reduces damage reduction of the mob by 20% for 5 seconds)
+
+- **/mms removetemp [mob uuid] [stat name] [Identifier]** - Remove temp stat from a mob.
+  
+  Example:
+  ```
+  /mms removetemp 788307ef-9dbc-4ae3-a2bf-0f2e3ad3d2ea damage_reduction wind_effect
+    
+  (This removes temp damage reduction of the mob that is associated with
+  the identifier "wind_effect")
+  ```
+
+  

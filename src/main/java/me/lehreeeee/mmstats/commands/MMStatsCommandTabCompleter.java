@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MMStatsCommandTabCompleter implements TabCompleter {
-    private final List<String> commands = List.of("reload", "stat", "temp");
+    private final List<String> commands = List.of("reload", "stat", "temp", "removetemp");
     private final List<String> availableStats = List.of(
             "damage_reduction", "magic_reduction", "physical_reduction",
             "weapon_reduction", "skill_reduction", "projectile_reduction",
@@ -33,11 +33,18 @@ public class MMStatsCommandTabCompleter implements TabCompleter {
             return loadedMobs;
         }
 
+        if(args[0].equalsIgnoreCase("removetemp")){
+            if(args.length == 2) return List.of("UUID");
+            if(args.length == 3) return availableStats;
+            if(args.length == 4) return List.of("identifier");
+        }
+
         if(args[0].equalsIgnoreCase("temp")){
             if(args.length == 2) return List.of("UUID");
             if(args.length == 3) return availableStats;
             if(args.length == 4) return List.of("69", "-420");
             if(args.length == 5) return List.of("milliseconds");
+            if(args.length == 6) return List.of("identifier");
         }
 
         return null;

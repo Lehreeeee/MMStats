@@ -4,8 +4,6 @@ import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.managers.MythicMobsManager;
 import me.lehreeeee.mmstats.utils.MessageHelper;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -14,7 +12,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
@@ -68,7 +65,17 @@ public class MMStatsCommand implements CommandExecutor {
             return true;
         }
 
-        if(args.length == 5 && args[0].equalsIgnoreCase("temp")){
+        if(args.length == 4 && args[0].equalsIgnoreCase("removetemp")){
+            String key = String.join(";",args[1], args[2], args[3]);
+            if(mobStatsManager.hasScheduledTask(key)) {
+                mobStatsManager.forceRemoveTempStat(key);
+                sendFeedbackMessage(sender,"<#FFA500>Removed temp stat with key " + key);
+            }
+            else sendFeedbackMessage(sender,"<#FFA500>Failed to remove temp stat from the mob, no existing tempstat with key " + key);
+            return true;
+        }
+
+        if(args.length == 6 && args[0].equalsIgnoreCase("temp")){
 
             try{
                 UUID uuid = UUID.fromString(args[1]);
@@ -84,8 +91,14 @@ public class MMStatsCommand implements CommandExecutor {
                     return true;
                 }
 
-                mobStatsManager.applyTempStat(UUID.fromString(args[1]), args[2], Integer.parseInt(args[3]), Long.parseLong(args[4]));
-                sendFeedbackMessage(sender,"<#FFA500>Successfully applied temp stat to the mob.");
+                if(args[5].contains(";")){
+                    sendFeedbackMessage(sender,"<#FFA500>Please do not use \";\" in identifier because I am using it as delimiter :suiwheeze:");
+                    return true;
+                }
+
+                boolean success = mobStatsManager.applyTempStat(UUID.fromString(args[1]), args[2], Integer.parseInt(args[3]), Long.parseLong(args[4]), args[5]);
+                if(success) sendFeedbackMessage(sender,"<#FFA500>Successfully applied temp stat to the mob.");
+                else sendFeedbackMessage(sender,"<#FFA500>Failed to apply temp stat to the mob, " + args[5] + " already in used.");
                 return true;
 
             } catch (NumberFormatException e) {
@@ -112,18 +125,20 @@ public class MMStatsCommand implements CommandExecutor {
 
     private void sendCommandUsage(CommandSender sender){
         if (sender instanceof Player) {
-            sender.sendMessage(MessageHelper.process("<#FFA500>Command Usage:",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms help - Show command usage.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms reload - Reload mob stats.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms stat [mob name] - Show stats of specific mob.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms temp [mob uuid] [stat name] [value] [duration in ms] - Apply temp stat to a mob.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>Command Usage:",true));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms help <white>-<aqua> Show command usage.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms reload <white>-<aqua> Reload mob stats.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms stat [mob name] <white>-<aqua> Show stats of specific mob.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms temp [mob uuid] [stat name] [value] [duration in ms] [identifier] <white>-<aqua> Apply temp stat to a mob.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms removetemp [mob uuid] [stat name] [identifier] <white>-<aqua> Remove temp stat from a mob.",false));
         }
         else{
             logger.info("Command Usage:");
             logger.info("/mms help - Show command usage.");
             logger.info("/mms reload - Reload mob stats.");
             logger.info("/mms stat [mob name] - Show stats of specific mob.");
-            logger.info("/mms temp [mob uuid] [stat name] [duration in ms] - Apply temp stat to a mob.");
+            logger.info("/mms temp [mob uuid] [stat name] [duration in ms] [identifier] - Apply temp stat to a mob.");
+            logger.info("/mms removetemp [mob uuid] [stat name] [identifier] - Remove temp stat from a mob.");
         }
     }
 

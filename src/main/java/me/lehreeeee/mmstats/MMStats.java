@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 
 public final class MMStats extends JavaPlugin {
 
-    private final String debugPrefix = "[MMStats Debug] ";
     private final Logger logger = getLogger();
     private MobStatsManager mobStatsManager;
     private MythicMobsManager mythicMobsManager;
