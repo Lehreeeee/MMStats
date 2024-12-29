@@ -6,6 +6,7 @@ MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats wi
 ## Features
 - Damage dealt to the mobs will be affected by the mob stats set in `config.yml`.
 - Putting negative values in the stats will make the mobs take extra damage on the damage type.
+- "Weakened" stat, which allows lowering mob's damage output.
 
 ## To be done
 - Add more unique stats as below
@@ -14,7 +15,7 @@ MMStats is a Minecraft plugin that allows MythicMobs to have stats. The stats wi
 
 - ~~Commands to temporarily adjust mob stats (Useful for support/debuff items.)~~ ✅
 
-
+- Maybe support "Weakened" stat on player (?)
 ## Dependencies
 
 - **MythicMobs** [Link here](https://mythiccraft.io/index.php?resources/mythicmobs.1/)
