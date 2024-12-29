@@ -86,7 +86,8 @@ public class MMStatsCommand implements CommandExecutor {
                     return true;
                 }
 
-                if(!mythicMobsManager.isMythicMob((LivingEntity) mob)){
+                // If its not mythicmob and stat is not weakened
+                if(!mythicMobsManager.isMythicMob((LivingEntity) mob) && !args[2].equalsIgnoreCase("weakened")){
                     sendFeedbackMessage(sender,"<#FFA500>Provided mob is not a mythic mob.");
                     return true;
                 }
@@ -128,17 +129,17 @@ public class MMStatsCommand implements CommandExecutor {
             sender.sendMessage(MessageHelper.process("<#FFA500>Command Usage:",true));
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms help <white>-<aqua> Show command usage.",false));
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms reload <white>-<aqua> Reload mob stats.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms stat [mob name] <white>-<aqua> Show stats of specific mob.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms temp [mob uuid] [stat name] [value] [duration in ms] [identifier] <white>-<aqua> Apply temp stat to a mob.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms removetemp [mob uuid] [stat name] [identifier] <white>-<aqua> Remove temp stat from a mob.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms stat [Mob name] <white>-<aqua> Show stats of specific mob.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms temp [Mob UUID] [Stat name] [Value] [Duration in ms] [Identifier] <white>-<aqua> Apply temp stat to a mob.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms removetemp [Mob UUID] [Stat name] [Identifier] <white>-<aqua> Remove temp stat from a mob.",false));
         }
         else{
             logger.info("Command Usage:");
             logger.info("/mms help - Show command usage.");
             logger.info("/mms reload - Reload mob stats.");
-            logger.info("/mms stat [mob name] - Show stats of specific mob.");
-            logger.info("/mms temp [mob uuid] [stat name] [duration in ms] [identifier] - Apply temp stat to a mob.");
-            logger.info("/mms removetemp [mob uuid] [stat name] [identifier] - Remove temp stat from a mob.");
+            logger.info("/mms stat [Mob name] - Show stats of specific mob.");
+            logger.info("/mms temp [Mob UUID] [Stat name] [Duration in ms] [Identifier] - Apply temp stat to a mob.");
+            logger.info("/mms removetemp [Mob UUID] [Stat name] [Identifier] - Remove temp stat from a mob.");
         }
     }
 

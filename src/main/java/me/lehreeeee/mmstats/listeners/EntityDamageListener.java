@@ -1,5 +1,6 @@
 package me.lehreeeee.mmstats.listeners;
 
+import io.lumine.mythic.lib.MythicLib;
 import io.lumine.mythic.lib.api.event.PlayerAttackEvent;
 import io.lumine.mythic.lib.damage.AttackMetadata;
 import io.lumine.mythic.lib.damage.DamageMetadata;
@@ -9,10 +10,14 @@ import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.managers.MythicMobsManager;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -31,7 +36,40 @@ public class EntityDamageListener implements Listener {
         this.mythicMobsManager = mythicMobsManager;
         this.logger = plugin.getLogger();
         Bukkit.getPluginManager().registerEvents(this,plugin);
-    };
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void onMobAttack(EntityDamageByEntityEvent event) {
+        Entity damager = event.getDamager();
+
+        // Handle projectile
+        if (damager instanceof Projectile proj) {
+            // Set damager to arrow shooter instead of arrow
+            if(proj.getShooter() instanceof Entity) damager = (Entity) proj.getShooter();
+        }
+
+        // Ignore dead entity or player attack
+        if(!(damager instanceof LivingEntity) || damager instanceof Player) return;
+        UUID damagerUUID = damager.getUniqueId();
+
+        // Imagine having no stat
+        if(!mobStatsManager.hasMobTempStats(damagerUUID)){
+            debugLogger("Damager " + damager.getName() + " does not have temp stats.");
+            return;
+        }
+
+        Integer weakenedValue = mobStatsManager.getMobTempStats(damagerUUID).get("weakened");
+        if(weakenedValue == null){
+            debugLogger("Damager " + damager.getName() + " does not have \"weakened\" stat, skipping.");
+        } else{
+            float damageReduction = (1 - weakenedValue / 100f);
+            DamageMetadata damageMetadata = MythicLib.inst().getDamage().findAttack(event).getDamage();
+            damageMetadata.multiplicativeModifier(Math.max(damageReduction, 0));
+
+            debugLogger("Applied damage reduction to weakened mob's attack: " + weakenedValue + "%");
+            debugLogger("Damage changes: " + event.getDamage() + " -> " + damageMetadata.getDamage());
+        }
+    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onAttack(PlayerAttackEvent event) {

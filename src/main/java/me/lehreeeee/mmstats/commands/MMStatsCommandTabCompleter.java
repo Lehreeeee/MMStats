@@ -4,6 +4,7 @@ import me.lehreeeee.mmstats.managers.MobStatsManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ public class MMStatsCommandTabCompleter implements TabCompleter {
             "damage_reduction", "magic_reduction", "physical_reduction",
             "weapon_reduction", "skill_reduction", "projectile_reduction",
             "unarmed_reduction", "on_hit_reduction", "minion_reduction",
-            "dot_reduction", "elements.[elementname]_reduction");
+            "dot_reduction", "elements.[elementname]_reduction", "weakened");
     private final List<String> loadedMobs = new ArrayList<>();
     private final MobStatsManager mobStatsManager;
 
@@ -23,7 +24,7 @@ public class MMStatsCommandTabCompleter implements TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if(args.length == 1){
             return commands;
         }
