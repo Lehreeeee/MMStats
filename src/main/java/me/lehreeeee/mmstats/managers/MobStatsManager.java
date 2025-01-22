@@ -82,7 +82,7 @@ public class MobStatsManager {
         return stats;
     }
 
-    public boolean applyTempStat(UUID uuid, String stat, int value, long duration, String identifier){
+    public boolean applyTempStat(UUID uuid, String stat, int value, long ticks, String identifier){
         // Example for /mms temp <target.uuid> damage_reduction 69 420 wind_debuff
         // Can be removed using /mms removetemp <target.uuid> damage_reduction wind_debuff
         // 6f78c9c0-044f-225d-8d01-c8d3cd37638b;damage_reduction;wind_debuff
@@ -101,7 +101,6 @@ public class MobStatsManager {
 
         // Add the stat or update its value by summing
         tempStats.merge(stat, value, Integer::sum);
-        long ticks = TimeUnit.MILLISECONDS.toSeconds(duration) * 20;
 
         // Schedule the temp stat removal
         TempStatRemovalTask task = new TempStatRemovalTask(this, key, value);

@@ -130,7 +130,7 @@ public class MMStatsCommand implements CommandExecutor {
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms help <white>-<aqua> Show command usage.",false));
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms reload <white>-<aqua> Reload mob stats.",false));
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms stat [Mob name] <white>-<aqua> Show stats of specific mob.",false));
-            sender.sendMessage(MessageHelper.process("<#FFA500>/mms temp [Mob UUID] [Stat name] [Value] [Duration in ms] [Identifier] <white>-<aqua> Apply temp stat to a mob.",false));
+            sender.sendMessage(MessageHelper.process("<#FFA500>/mms temp [Mob UUID] [Stat name] [Value] [DurationInTicks] [Identifier] <white>-<aqua> Apply temp stat to a mob.",false));
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms removetemp [Mob UUID] [Stat name] [Identifier] <white>-<aqua> Remove temp stat from a mob.",false));
         }
         else{
@@ -138,7 +138,7 @@ public class MMStatsCommand implements CommandExecutor {
             logger.info("/mms help - Show command usage.");
             logger.info("/mms reload - Reload mob stats.");
             logger.info("/mms stat [Mob name] - Show stats of specific mob.");
-            logger.info("/mms temp [Mob UUID] [Stat name] [Duration in ms] [Identifier] - Apply temp stat to a mob.");
+            logger.info("/mms temp [Mob UUID] [Stat name] [DurationInTicks]] [Identifier] - Apply temp stat to a mob.");
             logger.info("/mms removetemp [Mob UUID] [Stat name] [Identifier] - Remove temp stat from a mob.");
         }
     }
