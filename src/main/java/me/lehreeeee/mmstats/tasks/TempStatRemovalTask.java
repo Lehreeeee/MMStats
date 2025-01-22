@@ -7,9 +7,9 @@ public class TempStatRemovalTask extends BukkitRunnable {
 
     private final MobStatsManager mobStatsManager;
     private final String key;
-    private final int value;
+    private final double value;
 
-    public TempStatRemovalTask(MobStatsManager mobStatsManager, String key, int value) {
+    public TempStatRemovalTask(MobStatsManager mobStatsManager, String key, double value) {
         this.mobStatsManager = mobStatsManager;
         this.key = key;
         this.value = value;

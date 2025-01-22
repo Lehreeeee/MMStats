@@ -58,11 +58,11 @@ public class EntityDamageListener implements Listener {
             return;
         }
 
-        Integer weakenedValue = mobStatsManager.getMobTempStats(damagerUUID).get("weakened");
+        Double weakenedValue = mobStatsManager.getMobTempStats(damagerUUID).get("weakened");
         if(weakenedValue == null){
             debugLogger("Damager " + damager.getName() + " does not have \"weakened\" stat, skipping.");
         } else{
-            float damageReduction = (1 - weakenedValue / 100f);
+            double damageReduction = (1 - weakenedValue / 100f);
             DamageMetadata damageMetadata = MythicLib.inst().getDamage().findAttack(event).getDamage();
             damageMetadata.multiplicativeModifier(Math.max(damageReduction, 0));
 
@@ -97,7 +97,7 @@ public class EntityDamageListener implements Listener {
 
         // Get the stats of the mob
         Map<String, Object> mobStats = mobStatsManager.getMobStats(internalName);
-        Map<String, Integer> mobTempStats = mobStatsManager.getMobTempStats(uuid);
+        Map<String, Double> mobTempStats = mobStatsManager.getMobTempStats(uuid);
 
         // Get all damage types
         Set<DamageType> damageTypes = new HashSet<>(damage.collectTypes());
@@ -121,10 +121,10 @@ public class EntityDamageListener implements Listener {
         // Iterate through all damage types and perform reduction
         for(DamageType damageType : damageTypes) {
             String key = damageType.toString().toLowerCase() + "_reduction";
-            Integer damageReductionValue = 0;
+            Double damageReductionValue = 0D;
 
             // Set base stat if exists
-            if(mobStats.containsKey(key)) damageReductionValue = (Integer) mobStats.get(key);
+            if(mobStats.containsKey(key)) damageReductionValue = (Double) mobStats.get(key);
 
             // Calculate final reduction value with temp stat
             if(mobTempStats.containsKey(key)) damageReductionValue += mobTempStats.get(key);
@@ -136,12 +136,12 @@ public class EntityDamageListener implements Listener {
         // Iterate through all elemental damage types and perform reduction
         if(!elementTypes.isEmpty() && (mobStats.containsKey("elements") || mobStatsManager.hasMobTempElementalStats(uuid))){
             Object elementsObj = mobStats.get("elements");
-            Map<String, Integer> elementStats = new HashMap<>();
+            Map<String, Double> elementStats = new HashMap<>();
 
             // Cast Obj back to Map
             if(elementsObj instanceof Map){
                 try{
-                    elementStats = (Map<String, Integer>) elementsObj;
+                    elementStats = (Map<String, Double>) elementsObj;
                 }
                 catch(ClassCastException ex){
                     logger.warning(ex.getMessage());
@@ -151,10 +151,10 @@ public class EntityDamageListener implements Listener {
             // Iterate through all damage types and perform damage reduction
             for (Element elementType : elementTypes) {
                 String key = elementType.getName().toLowerCase() + "_reduction";
-                Integer damageReductionValue = 0;
+                Double damageReductionValue = 0D;
 
                 // Set base stat if exists
-                if (elementStats.containsKey(key)) damageReductionValue = elementStats.getOrDefault(key,0);
+                if (elementStats.containsKey(key)) damageReductionValue = elementStats.getOrDefault(key,0D);
 
                 // Calculate final reduction value with temp stat
                 if(mobTempStats.containsKey("elements." + key)) damageReductionValue += mobTempStats.get("elements." + key);
@@ -167,16 +167,16 @@ public class EntityDamageListener implements Listener {
         if(mobStats.containsKey("damage_reduction") || mobTempStats.containsKey("damage_reduction")) {
 
             // Set base stat
-            Integer damageReductionValue = (Integer) mobStats.getOrDefault("damage_reduction",0);
+            Double damageReductionValue = (Double) mobStats.getOrDefault("damage_reduction",0D);
 
             // Calculate final reduction value with temp stat
-            damageReductionValue += mobTempStats.getOrDefault("damage_reduction",0);
+            damageReductionValue += mobTempStats.getOrDefault("damage_reduction",0D);
 
             modifyDamage(damage, null, damageReductionValue, internalName);
         }
     }
 
-    private <T> void modifyDamage(DamageMetadata damage, T type, Integer statValue, String internalName){
+    private <T> void modifyDamage(DamageMetadata damage, T type, double statValue, String internalName){
         // For logging because Element returns io.lumine.mythic.lib.element.Element@12345 without .getName() >:(
         String typeName = (type instanceof Element) ? ((Element) type).getName() : Objects.requireNonNullElse(type, "GENERAL").toString();
         double originalDamage = damage.getDamage();
@@ -184,8 +184,8 @@ public class EntityDamageListener implements Listener {
         // Do reduction when its bigger than 0
         if(statValue > 0) {
             // Convert to float for calculating modifier
-            float damageReduction = statValue / 100f;
-            float finalReduction = Math.max(1 - damageReduction, 0);
+            double damageReduction = statValue / 100D;
+            double finalReduction = Math.max(1 - damageReduction, 0);
 
             switch (type) {
                 // Apply the general damage reduction modifier
@@ -205,8 +205,8 @@ public class EntityDamageListener implements Listener {
         else if(statValue < 0){
             statValue = Math.abs(statValue);
             // Convert to float for calculating modifier
-            float damageAmplification = statValue / 100f;
-            float finalAmplification = Math.max(1 + damageAmplification, 0);
+            double damageAmplification = statValue / 100F;
+            double finalAmplification = Math.max(1 + damageAmplification, 0);
 
             switch (type) {
                 // Apply the general damage reduction modifier

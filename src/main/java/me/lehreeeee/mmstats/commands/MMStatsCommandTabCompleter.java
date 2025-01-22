@@ -43,7 +43,7 @@ public class MMStatsCommandTabCompleter implements TabCompleter {
         if(args[0].equalsIgnoreCase("temp")){
             if(args.length == 2) return List.of("UUID");
             if(args.length == 3) return availableStats;
-            if(args.length == 4) return List.of("69", "-420");
+            if(args.length == 4) return List.of("6.9", "-420");
             if(args.length == 5) return List.of("ticks");
             if(args.length == 6) return List.of("identifier");
         }

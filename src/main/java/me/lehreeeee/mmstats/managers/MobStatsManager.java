@@ -2,19 +2,18 @@ package me.lehreeeee.mmstats.managers;
 
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.tasks.TempStatRemovalTask;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class MobStatsManager {
     private final Map<String, Map<String, Object>> mobStatsMap = new HashMap<>();
     // Expected structure: (UUID, <"magic_reduction",10>) or (UUID, <"elements.void_reduction",10>)
-    private final Map<UUID, Map<String, Integer>> mobTempStatsMap = new HashMap<>();
+    private final Map<UUID, Map<String, Double>> mobTempStatsMap = new HashMap<>();
     private Map<String, TempStatRemovalTask> scheduledTasks = new HashMap<>();
     private final Logger logger;
     private final MMStats plugin;
@@ -58,13 +57,13 @@ public class MobStatsManager {
         // Load stats
         for (String statKey : config.getConfigurationSection(basePath).getKeys(false)) {
             String path = basePath + "." + statKey;
-            int statValue = 0;
+            double statValue = 0;
 
             // If its nested stats & elements section
             if (config.isConfigurationSection(path) && path.endsWith(".elements")) {
-                Map<String, Integer> elementStats = new HashMap<>();
+                Map<String, Double> elementStats = new HashMap<>();
                 for (String nestedKey : config.getConfigurationSection(path).getKeys(false)) {
-                    statValue = config.getInt(path + "." + nestedKey,0);
+                    statValue = config.getDouble(path + "." + nestedKey,0D);
                     if (statValue != 0 && statValue <= 100)
                         elementStats.put(nestedKey, statValue);
                     else
@@ -72,7 +71,7 @@ public class MobStatsManager {
                 }
                 stats.put(statKey, elementStats);
             } else {
-                statValue = config.getInt(path,0);
+                statValue = config.getDouble(path,0D);
                 if (statValue != 0 && statValue <= 100)
                     stats.put(statKey, statValue);
                 else
@@ -82,7 +81,7 @@ public class MobStatsManager {
         return stats;
     }
 
-    public boolean applyTempStat(UUID uuid, String stat, int value, long ticks, String identifier){
+    public boolean applyTempStat(UUID uuid, String stat, double value, long ticks, String identifier){
         // Example for /mms temp <target.uuid> damage_reduction 69 420 wind_debuff
         // Can be removed using /mms removetemp <target.uuid> damage_reduction wind_debuff
         // 6f78c9c0-044f-225d-8d01-c8d3cd37638b;damage_reduction;wind_debuff
@@ -97,10 +96,10 @@ public class MobStatsManager {
         }
 
         mobTempStatsMap.putIfAbsent(uuid, new HashMap<>());
-        Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
+        Map<String,Double> tempStats = mobTempStatsMap.get(uuid);
 
         // Add the stat or update its value by summing
-        tempStats.merge(stat, value, Integer::sum);
+        tempStats.merge(stat, value, Double::sum);
 
         // Schedule the temp stat removal
         TempStatRemovalTask task = new TempStatRemovalTask(this, key, value);
@@ -122,7 +121,7 @@ public class MobStatsManager {
         task.cancel();
     }
 
-    public void removeTempStat(String key, int value){
+    public void removeTempStat(String key, double value){
         String[] info = key.split(";");
         if(info.length != 3) {
             plugin.getLogger().warning("Error removing temp stats for " + key);
@@ -131,11 +130,11 @@ public class MobStatsManager {
 
         UUID uuid = UUID.fromString(info[0]);
         String stat = info[1];
-        Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
+        Map<String,Double> tempStats = mobTempStatsMap.get(uuid);
 
         if (tempStats != null) {
             // Restore the stat by undoing the temporary change
-            int restoredValue = tempStats.get(stat) - value;
+            double restoredValue = tempStats.get(stat) - value;
 
             // If the restored value is 0, debuff/buff is gone, remove the stat
             if (restoredValue == 0) {
@@ -184,7 +183,7 @@ public class MobStatsManager {
     }
 
     public boolean hasMobTempElementalStats(UUID uuid) {
-        Map<String,Integer> tempStats = mobTempStatsMap.get(uuid);
+        Map<String,Double> tempStats = mobTempStatsMap.get(uuid);
 
         if(tempStats != null){
             for (String key : tempStats.keySet()) {
@@ -194,7 +193,7 @@ public class MobStatsManager {
         return false;
     }
 
-    public Map<String, Integer> getMobTempStats(UUID uuid) {
+    public Map<String, Double> getMobTempStats(UUID uuid) {
         return mobTempStatsMap.getOrDefault(uuid, new HashMap<>());
     }
 

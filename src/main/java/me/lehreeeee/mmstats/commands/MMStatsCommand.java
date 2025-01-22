@@ -97,7 +97,7 @@ public class MMStatsCommand implements CommandExecutor {
                     return true;
                 }
 
-                boolean success = mobStatsManager.applyTempStat(UUID.fromString(args[1]), args[2], Integer.parseInt(args[3]), Long.parseLong(args[4]), args[5]);
+                boolean success = mobStatsManager.applyTempStat(UUID.fromString(args[1]), args[2], Double.parseDouble(args[3]), Long.parseLong(args[4]), args[5]);
                 if(success) sendFeedbackMessage(sender,"<#FFA500>Successfully applied temp stat to the mob.");
                 else sendFeedbackMessage(sender,"<#FFA500>Failed to apply temp stat to the mob, " + args[5] + " already in used.");
                 return true;
@@ -149,9 +149,9 @@ public class MMStatsCommand implements CommandExecutor {
         for(Map.Entry<String, Object> entry : mobStats.entrySet()){
             if(entry.getKey().equals("elements") && entry.getValue() instanceof Map<?,?> rawMap){
                 try{
-                    Map<String, Integer> elementStats = (Map<String, Integer>) rawMap;
+                    Map<String, Double> elementStats = (Map<String, Double>) rawMap;
 
-                    for (Map.Entry<String, Integer> stat : elementStats.entrySet()) {
+                    for (Map.Entry<String, Double> stat : elementStats.entrySet()) {
                         result.append("<br>")
                                 .append("<yellow>")
                                 .append(stat.getKey())
