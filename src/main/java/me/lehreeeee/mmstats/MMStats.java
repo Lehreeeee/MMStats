@@ -6,21 +6,15 @@ import me.lehreeeee.mmstats.listeners.EntityDamageListener;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.managers.MythicMobsManager;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.swing.text.html.parser.Entity;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 public final class MMStats extends JavaPlugin {
 
     private final Logger logger = getLogger();
-    private MobStatsManager mobStatsManager;
-    private MythicMobsManager mythicMobsManager;
+
+    private boolean debug = false;
 
     @Override
     public void onEnable() {
@@ -28,24 +22,36 @@ public final class MMStats extends JavaPlugin {
         // Save the default config.yml
         saveDefaultConfig();
 
-        mobStatsManager = new MobStatsManager(this);
+        MobStatsManager.init(this);
+        MobStatsManager mobStatsManager = MobStatsManager.getInstance();
         mobStatsManager.loadMobStats();
 
-        mythicMobsManager = new MythicMobsManager(this);
+        MythicMobsManager mythicMobsManager = new MythicMobsManager();
 
-        getCommand("mmstats").setExecutor(new MMStatsCommand(this, mobStatsManager, mythicMobsManager));
-        getCommand("mmstats").setTabCompleter(new MMStatsCommandTabCompleter(mobStatsManager));
-
-
+        getCommand("mmstats").setExecutor(new MMStatsCommand(this));
+        getCommand("mmstats").setTabCompleter(new MMStatsCommandTabCompleter());
 
         new EntityDamageListener(this, mobStatsManager, mythicMobsManager);
+
+        updateDebug();
 
         logger.info("Enabled MMStats...");
     }
 
     @Override
     public void onDisable() {
-
         logger.info("Disabled MMStats...");
+    }
+
+    public void updateDebug() {
+        this.debug = this.getConfig().getBoolean("debug",false);
+    }
+
+    public static MMStats getPlugin(){
+        return (MMStats) Bukkit.getPluginManager().getPlugin("MMStats");
+    }
+
+    public boolean shouldPrintDebug(){
+        return this.debug;
     }
 }

@@ -9,6 +9,7 @@ import io.lumine.mythic.lib.element.Element;
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.managers.MythicMobsManager;
+import me.lehreeeee.mmstats.utils.LoggerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -54,20 +55,20 @@ public class EntityDamageListener implements Listener {
 
         // Imagine having no stat
         if(!mobStatsManager.hasMobTempStats(damagerUUID)){
-            debugLogger("Damager " + damager.getName() + " does not have temp stats.");
+            LoggerUtil.debug("Damager " + damager.getName() + " does not have temp stats.");
             return;
         }
 
         Double weakenedValue = mobStatsManager.getMobTempStats(damagerUUID).get("weakened");
         if(weakenedValue == null){
-            debugLogger("Damager " + damager.getName() + " does not have \"weakened\" stat, skipping.");
+            LoggerUtil.debug("Damager " + damager.getName() + " does not have \"weakened\" stat, skipping.");
         } else{
             double damageReduction = (1 - weakenedValue / 100f);
             DamageMetadata damageMetadata = MythicLib.inst().getDamage().findAttack(event).getDamage();
             damageMetadata.multiplicativeModifier(Math.max(damageReduction, 0));
 
-            debugLogger("Applied damage reduction to weakened mob's attack: " + weakenedValue + "%");
-            debugLogger("Damage changes: " + event.getDamage() + " -> " + damageMetadata.getDamage());
+            LoggerUtil.debug("Applied damage reduction to weakened mob's attack: " + weakenedValue + "%");
+            LoggerUtil.debug("Damage changes: " + event.getDamage() + " -> " + damageMetadata.getDamage());
         }
     }
 
@@ -79,7 +80,7 @@ public class EntityDamageListener implements Listener {
 
         // Is it a mythicmobs?
         if(!mythicMobsManager.isMythicMob(victim)) {
-            debugLogger("Victim " + victim.getName() + " is not mythicmobs.");
+            LoggerUtil.debug("Victim " + victim.getName() + " is not mythicmobs.");
             return;
         }
 
@@ -88,7 +89,7 @@ public class EntityDamageListener implements Listener {
 
         // Imagine having no stat
         if(!mobStatsManager.hasMobStats(internalName) && !mobStatsManager.hasMobTempStats(uuid)){
-            debugLogger("Victim " + victim.getName() + " does not have stats.");
+            LoggerUtil.debug("Victim " + victim.getName() + " does not have stats.");
             return;
         }
 
@@ -116,7 +117,7 @@ public class EntityDamageListener implements Listener {
         }
 
         // Log all types found in the damage
-        debugLogger( "Damage Types: " + damageTypes + " Element Types: " + elementStrings);
+        LoggerUtil.debug( "Damage Types: " + damageTypes + " Element Types: " + elementStrings);
 
         // Iterate through all damage types and perform reduction
         for(DamageType damageType : damageTypes) {
@@ -198,8 +199,8 @@ public class EntityDamageListener implements Listener {
             }
 
             // Log reduction for debugging
-            debugLogger("Applied " + typeName + " reduction: " + statValue + "%");
-            debugLogger("Damage changes: " + originalDamage + " -> " + damage.getDamage());
+            LoggerUtil.debug("Applied " + typeName + " reduction: " + statValue + "%");
+            LoggerUtil.debug("Damage changes: " + originalDamage + " -> " + damage.getDamage());
         }
         // Do amplification when its negative
         else if(statValue < 0){
@@ -219,14 +220,8 @@ public class EntityDamageListener implements Listener {
             }
 
             // Log reduction for debugging
-            debugLogger("Applied " + typeName + " amplification: " + statValue + "%");
-            debugLogger("Damage changes: " + originalDamage + " -> " + damage.getDamage());
+            LoggerUtil.debug("Applied " + typeName + " amplification: " + statValue + "%");
+            LoggerUtil.debug("Damage changes: " + originalDamage + " -> " + damage.getDamage());
         }
     }
-
-    public void debugLogger(String debugMessage){
-        if(plugin.getConfig().getBoolean("debug",false))
-            logger.info(debugMessage);
-    }
-
 }

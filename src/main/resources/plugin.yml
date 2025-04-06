@@ -5,6 +5,8 @@ author: Lehreeeee
 description: A plugin to allow MythicMobs use Mythiclib compatible stats.
 api-version: '1.21'
 
+depend: [MythicMobs]
+
 commands:
   mmstats:
     description: Main command for MMStats

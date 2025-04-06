@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MMStatsCommandTabCompleter implements TabCompleter {
@@ -16,12 +15,6 @@ public class MMStatsCommandTabCompleter implements TabCompleter {
             "weapon_reduction", "skill_reduction", "projectile_reduction",
             "unarmed_reduction", "on_hit_reduction", "minion_reduction",
             "dot_reduction", "elements.[elementname]_reduction", "weakened");
-    private final List<String> loadedMobs = new ArrayList<>();
-    private final MobStatsManager mobStatsManager;
-
-    public MMStatsCommandTabCompleter(MobStatsManager mobStatsManager){
-        this.mobStatsManager = mobStatsManager;
-    }
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
@@ -30,8 +23,7 @@ public class MMStatsCommandTabCompleter implements TabCompleter {
         }
 
         if(args[0].equalsIgnoreCase("stat") && args.length == 2){
-            loadedMobs.addAll(mobStatsManager.getMobStatsMap().keySet());
-            return loadedMobs;
+            return MobStatsManager.getInstance().getMobStatsMap().keySet().stream().toList();
         }
 
         if(args[0].equalsIgnoreCase("removetemp")){

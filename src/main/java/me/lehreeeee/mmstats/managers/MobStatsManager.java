@@ -2,25 +2,38 @@ package me.lehreeeee.mmstats.managers;
 
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.tasks.TempStatRemovalTask;
+import me.lehreeeee.mmstats.utils.LoggerUtil;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class MobStatsManager {
+    private static MobStatsManager instance;
+
     private final Map<String, Map<String, Object>> mobStatsMap = new HashMap<>();
     // Expected structure: (UUID, <"magic_reduction",10>) or (UUID, <"elements.void_reduction",10>)
     private final Map<UUID, Map<String, Double>> mobTempStatsMap = new HashMap<>();
-    private Map<String, TempStatRemovalTask> scheduledTasks = new HashMap<>();
-    private final Logger logger;
+    private final Map<String, TempStatRemovalTask> scheduledTasks = new HashMap<>();
     private final MMStats plugin;
 
-    public MobStatsManager(MMStats plugin) {
+    private MobStatsManager(MMStats plugin){
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
+    }
+
+    public static MobStatsManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("MobStatsManager not initialized.");
+        }
+        return instance;
+    }
+
+    public static void init(MMStats plugin) {
+        if (instance == null) {
+            instance = new MobStatsManager(plugin);
+        }
     }
 
     public void loadMobStats() {
@@ -31,7 +44,7 @@ public class MobStatsManager {
         FileConfiguration config = plugin.getConfig();
 
         if(!config.isConfigurationSection("mythic_mobs")){
-            logger.warning("\"mythic_mobs\" section not found, will not load any mobstats.");
+            LoggerUtil.warning("\"mythic_mobs\" section not found, will not load any mobstats.");
             return;
         }
 
@@ -39,7 +52,7 @@ public class MobStatsManager {
         Set<String> mobNames = config.getConfigurationSection("mythic_mobs").getKeys(false);
 
         // Log all loaded mobs
-        logger.info("Loaded mobs: " + String.join(", ", mobNames));
+        LoggerUtil.info("Loaded mobs: " + String.join(", ", mobNames));
 
         for (String mobName : mobNames) {
             Map<String, Object> stats = loadStats(config, mobName);
@@ -67,7 +80,7 @@ public class MobStatsManager {
                     if (statValue != 0 && statValue <= 100)
                         elementStats.put(nestedKey, statValue);
                     else
-                        logger.warning("Found and ignored unusual stat " + statValue + " at " + path + "." + nestedKey + ", misconfiguration?");
+                        LoggerUtil.warning("Found and ignored unusual stat " + statValue + " at " + path + "." + nestedKey + ", misconfiguration?");
                 }
                 stats.put(statKey, elementStats);
             } else {
@@ -75,7 +88,7 @@ public class MobStatsManager {
                 if (statValue != 0 && statValue <= 100)
                     stats.put(statKey, statValue);
                 else
-                    logger.warning("Found and ignored unusual stat " + statValue + " at " + path + ", misconfiguration?");
+                    LoggerUtil.warning("Found and ignored unusual stat " + statValue + " at " + path + ", misconfiguration?");
             }
         }
         return stats;
@@ -91,7 +104,7 @@ public class MobStatsManager {
 
         // Is there any existing same buff? Ignore if yes to prevent stacking.
         if(scheduledTasks.containsKey(key)){
-            debugLogger("Temp stat key " + key + " already exists for this entity!");
+            LoggerUtil.debug("Temp stat key " + key + " already exists for this entity!");
             return false;
         }
 
@@ -102,12 +115,13 @@ public class MobStatsManager {
         tempStats.merge(stat, value, Double::sum);
 
         // Schedule the temp stat removal
-        TempStatRemovalTask task = new TempStatRemovalTask(this, key, value);
+        TempStatRemovalTask task = new TempStatRemovalTask(key, value);
         task.runTaskLater(plugin, ticks);
+
         // Store it for force cancellation
         scheduledTasks.put(key,task);
 
-        debugLogger("Added temp stat " + key + ": " + value);
+        LoggerUtil.debug("Added temp stat " + key + ": " + value);
         return true;
     }
 
@@ -138,27 +152,27 @@ public class MobStatsManager {
 
             // If the restored value is 0, debuff/buff is gone, remove the stat
             if (restoredValue == 0) {
-                debugLogger("Restored value is 0, removing from temp stats.");
+                LoggerUtil.debug("Restored value is 0, removing from temp stats.");
                 tempStats.remove(stat);
                 if(tempStats.isEmpty()){
-                    debugLogger("No more temp stat for this mob, removing from temp stats map.");
+                    LoggerUtil.debug("No more temp stat for this mob, removing from temp stats map.");
                     mobTempStatsMap.remove(uuid);
                 }
             } else {
-                debugLogger("Restored value is " + restoredValue + ", updating temp stats.");
+                LoggerUtil.debug("Restored value is " + restoredValue + ", updating temp stats.");
                 tempStats.put(stat, restoredValue);
             }
-            debugLogger("Removed temp stat " + stat + ": " + value + " for " + uuid);
+            LoggerUtil.debug("Removed temp stat " + stat + ": " + value + " for " + uuid);
             scheduledTasks.remove(key);
         }
-        else debugLogger("Failed to remove temp stat " + stat + ": " + value + " for " + uuid);
+        else LoggerUtil.debug("Failed to remove temp stat " + stat + ": " + value + " for " + uuid);
     }
 
     public void logMobStats() {
         for (Map.Entry<String, Map<String, Object>> entry : mobStatsMap.entrySet()) {
             String mobName = entry.getKey();
             Map<String, Object> stats = entry.getValue();
-            logger.info("Stats for " + mobName + ": " + stats);
+            LoggerUtil.info("Stats for " + mobName + ": " + stats);
         }
     }
 
@@ -195,10 +209,5 @@ public class MobStatsManager {
 
     public Map<String, Double> getMobTempStats(UUID uuid) {
         return mobTempStatsMap.getOrDefault(uuid, new HashMap<>());
-    }
-
-    public void debugLogger(String debugMessage){
-        if(plugin.getConfig().getBoolean("debug",false))
-            logger.info(debugMessage);
     }
 }
