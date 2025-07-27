@@ -2,8 +2,10 @@ package me.lehreeeee.mmstats;
 
 import me.lehreeeee.mmstats.commands.MMStatsCommand;
 import me.lehreeeee.mmstats.commands.MMStatsCommandTabCompleter;
+import me.lehreeeee.mmstats.hooks.PlaceholderAPIHook;
 import me.lehreeeee.mmstats.listeners.EntityDamageListener;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Logger;
@@ -24,6 +26,10 @@ public final class MMStats extends JavaPlugin {
         MobStatsManager.init(this);
         MobStatsManager mobStatsManager = MobStatsManager.getInstance();
         mobStatsManager.loadMobStats();
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new PlaceholderAPIHook().register();
+        }
 
         getCommand("mmstats").setExecutor(new MMStatsCommand(this));
         getCommand("mmstats").setTabCompleter(new MMStatsCommandTabCompleter());

@@ -1,6 +1,7 @@
 package me.lehreeeee.mmstats.managers;
 
 import me.lehreeeee.mmstats.MMStats;
+import me.lehreeeee.mmstats.hooks.MythicMobsHook;
 import me.lehreeeee.mmstats.tasks.TempStatRemovalTask;
 import me.lehreeeee.mmstats.utils.LoggerUtils;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -209,5 +210,20 @@ public class MobStatsManager {
 
     public Map<String, Double> getMobTempStats(UUID uuid) {
         return mobTempStatsMap.getOrDefault(uuid, new HashMap<>());
+    }
+
+    public double getTotalStat(UUID uuid, String stat){
+        String mythicMobsInternalName = MythicMobsHook.getInternalName(uuid);
+        double total = 0D;
+
+        if(hasMobStats(mythicMobsInternalName) && getMobStats(mythicMobsInternalName).containsKey(stat)){
+            total += (Double) getMobStats(mythicMobsInternalName).get(stat);
+        }
+
+        if(hasMobTempStats(uuid) && getMobTempStats(uuid).containsKey(stat)){
+            total += getMobTempStats(uuid).get(stat);
+        }
+
+        return total;
     }
 }

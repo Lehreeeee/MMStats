@@ -1,7 +1,5 @@
 package me.lehreeeee.mmstats.listeners;
 
-import io.lumine.mythic.api.adapters.AbstractEntity;
-import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.lib.MythicLib;
 import io.lumine.mythic.lib.api.event.PlayerAttackEvent;
 import io.lumine.mythic.lib.damage.AttackMetadata;
@@ -9,8 +7,8 @@ import io.lumine.mythic.lib.damage.DamageMetadata;
 import io.lumine.mythic.lib.damage.DamageType;
 import io.lumine.mythic.lib.element.Element;
 import me.lehreeeee.mmstats.MMStats;
-import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.hooks.MythicMobsHook;
+import me.lehreeeee.mmstats.managers.MobStatsManager;
 import me.lehreeeee.mmstats.utils.LoggerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -36,7 +34,7 @@ public class EntityDamageListener implements Listener {
         Bukkit.getPluginManager().registerEvents(this,plugin);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    /*@EventHandler(ignoreCancelled = true)
     public void tempOnAttack(PlayerAttackEvent event){
         ActiveMob activeMob = MythicMobsHook.getActiveMob(event.getEntity().getUniqueId());
         if(activeMob == null || !activeMob.hasImmunityTable()) return;
@@ -46,7 +44,7 @@ public class EntityDamageListener implements Listener {
         activeMob.getImmunityTable().clearCooldown(player);
         LoggerUtils.debug("Cleared cooldown: " + player.getName());
         LoggerUtils.debug("Immunity on cooldown: " + activeMob.getImmunityTable().onCooldown(player));
-    }
+    }*/
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onMobAttack(EntityDamageByEntityEvent event) {

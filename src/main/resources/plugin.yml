@@ -5,7 +5,10 @@ author: Lehreeeee
 description: A plugin to allow MythicMobs use Mythiclib compatible stats.
 api-version: '1.21'
 
+# Must have
 depend: [MythicMobs]
+# Optional
+softdepend: [PlaceholderAPI]
 
 commands:
   mmstats:
