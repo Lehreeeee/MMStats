@@ -1,9 +1,9 @@
 package me.lehreeeee.mmstats.commands;
 
 import me.lehreeeee.mmstats.MMStats;
+import me.lehreeeee.mmstats.hooks.MythicMobsHook;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
-import me.lehreeeee.mmstats.managers.MythicMobsManager;
-import me.lehreeeee.mmstats.utils.LoggerUtil;
+import me.lehreeeee.mmstats.utils.LoggerUtils;
 import me.lehreeeee.mmstats.utils.MessageHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -84,7 +84,7 @@ public class MMStatsCommand implements CommandExecutor {
                 }
 
                 // If its not mythicmob and stat is not weakened
-                if(!MythicMobsManager.isMythicMob((LivingEntity) mob) && !args[2].equalsIgnoreCase("weakened")){
+                if(!MythicMobsHook.isMythicMob((LivingEntity) mob) && !args[2].equalsIgnoreCase("weakened")){
                     sendFeedbackMessage(sender,"<#FFA500>Provided mob is not a mythic mob.");
                     return true;
                 }
@@ -116,7 +116,7 @@ public class MMStatsCommand implements CommandExecutor {
     }
 
     private void sendFeedbackMessage(CommandSender sender, String msg){
-        LoggerUtil.info(MessageHelper.getPlainText(msg));
+        LoggerUtils.info(MessageHelper.getPlainText(msg));
 
         if (sender instanceof Player) sender.sendMessage(MessageHelper.process(msg,true));
     }
@@ -131,12 +131,12 @@ public class MMStatsCommand implements CommandExecutor {
             sender.sendMessage(MessageHelper.process("<#FFA500>/mms removetemp [Mob UUID] [Stat name] [Identifier] <white>-<aqua> Remove temp stat from a mob.",false));
         }
         else{
-            LoggerUtil.info("Command Usage:");
-            LoggerUtil.info("/mms help - Show command usage.");
-            LoggerUtil.info("/mms reload - Reload mob stats.");
-            LoggerUtil.info("/mms stat [Mob name] - Show stats of specific mob.");
-            LoggerUtil.info("/mms temp [Mob UUID] [Stat name] [DurationInTicks]] [Identifier] - Apply temp stat to a mob.");
-            LoggerUtil.info("/mms removetemp [Mob UUID] [Stat name] [Identifier] - Remove temp stat from a mob.");
+            LoggerUtils.info("Command Usage:");
+            LoggerUtils.info("/mms help - Show command usage.");
+            LoggerUtils.info("/mms reload - Reload mob stats.");
+            LoggerUtils.info("/mms stat [Mob name] - Show stats of specific mob.");
+            LoggerUtils.info("/mms temp [Mob UUID] [Stat name] [DurationInTicks]] [Identifier] - Apply temp stat to a mob.");
+            LoggerUtils.info("/mms removetemp [Mob UUID] [Stat name] [Identifier] - Remove temp stat from a mob.");
         }
     }
 
@@ -158,7 +158,7 @@ public class MMStatsCommand implements CommandExecutor {
                     }
                 }
                 catch(ClassCastException ex){
-                    LoggerUtil.warning(ex.getMessage());
+                    LoggerUtils.warning(ex.getMessage());
                 }
             }else{
                 result.append("<br>")

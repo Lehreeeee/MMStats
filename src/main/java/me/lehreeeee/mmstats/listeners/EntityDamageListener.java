@@ -1,5 +1,7 @@
 package me.lehreeeee.mmstats.listeners;
 
+import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.lib.MythicLib;
 import io.lumine.mythic.lib.api.event.PlayerAttackEvent;
 import io.lumine.mythic.lib.damage.AttackMetadata;
@@ -8,8 +10,8 @@ import io.lumine.mythic.lib.damage.DamageType;
 import io.lumine.mythic.lib.element.Element;
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.managers.MobStatsManager;
-import me.lehreeeee.mmstats.managers.MythicMobsManager;
-import me.lehreeeee.mmstats.utils.LoggerUtil;
+import me.lehreeeee.mmstats.hooks.MythicMobsHook;
+import me.lehreeeee.mmstats.utils.LoggerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -25,21 +27,28 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class EntityDamageListener implements Listener {
-
-    private final MMStats plugin;
     private final Logger logger;
     private final MobStatsManager mobStatsManager;
-    private final MythicMobsManager mythicMobsManager;
 
-    public EntityDamageListener(MMStats plugin, MobStatsManager mobStatsManager, MythicMobsManager mythicMobsManager){
-        this.plugin = plugin;
+    public EntityDamageListener(MMStats plugin, MobStatsManager mobStatsManager){
         this.mobStatsManager = mobStatsManager;
-        this.mythicMobsManager = mythicMobsManager;
         this.logger = plugin.getLogger();
         Bukkit.getPluginManager().registerEvents(this,plugin);
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true)
+    public void tempOnAttack(PlayerAttackEvent event){
+        ActiveMob activeMob = MythicMobsHook.getActiveMob(event.getEntity().getUniqueId());
+        if(activeMob == null || !activeMob.hasImmunityTable()) return;
+
+        AbstractEntity player = (AbstractEntity) event.getAttacker().getPlayer();
+        LoggerUtils.debug("Immunity on cooldown: " + activeMob.getImmunityTable().onCooldown(player));
+        activeMob.getImmunityTable().clearCooldown(player);
+        LoggerUtils.debug("Cleared cooldown: " + player.getName());
+        LoggerUtils.debug("Immunity on cooldown: " + activeMob.getImmunityTable().onCooldown(player));
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onMobAttack(EntityDamageByEntityEvent event) {
         Entity damager = event.getDamager();
 
@@ -55,41 +64,41 @@ public class EntityDamageListener implements Listener {
 
         // Imagine having no stat
         if(!mobStatsManager.hasMobTempStats(damagerUUID)){
-            LoggerUtil.debug("Damager " + damager.getName() + " does not have temp stats.");
+            LoggerUtils.debug("Damager " + damager.getName() + " does not have temp stats.");
             return;
         }
 
         Double weakenedValue = mobStatsManager.getMobTempStats(damagerUUID).get("weakened");
         if(weakenedValue == null){
-            LoggerUtil.debug("Damager " + damager.getName() + " does not have \"weakened\" stat, skipping.");
+            LoggerUtils.debug("Damager " + damager.getName() + " does not have \"weakened\" stat, skipping.");
         } else{
             double damageReduction = (1 - weakenedValue / 100f);
             DamageMetadata damageMetadata = MythicLib.inst().getDamage().findAttack(event).getDamage();
             damageMetadata.multiplicativeModifier(Math.max(damageReduction, 0));
 
-            LoggerUtil.debug("Applied damage reduction to weakened mob's attack: " + weakenedValue + "%");
-            LoggerUtil.debug("Damage changes: " + event.getDamage() + " -> " + damageMetadata.getDamage());
+            LoggerUtils.debug("Applied damage reduction to weakened mob's attack: " + weakenedValue + "%");
+            LoggerUtils.debug("Damage changes: " + event.getDamage() + " -> " + damageMetadata.getDamage());
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onAttack(PlayerAttackEvent event) {
         AttackMetadata attack = event.getAttack();
         LivingEntity victim = attack.getTarget();
         UUID uuid = victim.getUniqueId();
 
         // Is it a mythicmobs?
-        if(!mythicMobsManager.isMythicMob(victim)) {
-            LoggerUtil.debug("Victim " + victim.getName() + " is not mythicmobs.");
+        if(!MythicMobsHook.isMythicMob(victim)) {
+            LoggerUtils.debug("Victim " + victim.getName() + " is not mythicmobs.");
             return;
         }
 
         // Get internal name of this mob
-        String internalName = mythicMobsManager.getInternalName(uuid);
+        String internalName = MythicMobsHook.getInternalName(uuid);
 
         // Imagine having no stat
         if(!mobStatsManager.hasMobStats(internalName) && !mobStatsManager.hasMobTempStats(uuid)){
-            LoggerUtil.debug("Victim " + victim.getName() + " does not have stats.");
+            LoggerUtils.debug("Victim " + victim.getName() + " does not have stats.");
             return;
         }
 
@@ -117,7 +126,7 @@ public class EntityDamageListener implements Listener {
         }
 
         // Log all types found in the damage
-        LoggerUtil.debug( "Damage Types: " + damageTypes + " Element Types: " + elementStrings);
+        LoggerUtils.debug( "Damage Types: " + damageTypes + " Element Types: " + elementStrings);
 
         // Iterate through all damage types and perform reduction
         for(DamageType damageType : damageTypes) {
@@ -199,8 +208,8 @@ public class EntityDamageListener implements Listener {
             }
 
             // Log reduction for debugging
-            LoggerUtil.debug("Applied " + typeName + " reduction: " + statValue + "%");
-            LoggerUtil.debug("Damage changes: " + originalDamage + " -> " + damage.getDamage());
+            LoggerUtils.debug("Applied " + typeName + " reduction: " + statValue + "%");
+            LoggerUtils.debug("Damage changes: " + originalDamage + " -> " + damage.getDamage());
         }
         // Do amplification when its negative
         else if(statValue < 0){
@@ -220,8 +229,8 @@ public class EntityDamageListener implements Listener {
             }
 
             // Log reduction for debugging
-            LoggerUtil.debug("Applied " + typeName + " amplification: " + statValue + "%");
-            LoggerUtil.debug("Damage changes: " + originalDamage + " -> " + damage.getDamage());
+            LoggerUtils.debug("Applied " + typeName + " amplification: " + statValue + "%");
+            LoggerUtils.debug("Damage changes: " + originalDamage + " -> " + damage.getDamage());
         }
     }
 }

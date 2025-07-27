@@ -2,7 +2,7 @@ package me.lehreeeee.mmstats.managers;
 
 import me.lehreeeee.mmstats.MMStats;
 import me.lehreeeee.mmstats.tasks.TempStatRemovalTask;
-import me.lehreeeee.mmstats.utils.LoggerUtil;
+import me.lehreeeee.mmstats.utils.LoggerUtils;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
@@ -44,7 +44,7 @@ public class MobStatsManager {
         FileConfiguration config = plugin.getConfig();
 
         if(!config.isConfigurationSection("mythic_mobs")){
-            LoggerUtil.warning("\"mythic_mobs\" section not found, will not load any mobstats.");
+            LoggerUtils.warning("\"mythic_mobs\" section not found, will not load any mobstats.");
             return;
         }
 
@@ -52,7 +52,7 @@ public class MobStatsManager {
         Set<String> mobNames = config.getConfigurationSection("mythic_mobs").getKeys(false);
 
         // Log all loaded mobs
-        LoggerUtil.info("Loaded mobs: " + String.join(", ", mobNames));
+        LoggerUtils.info("Loaded mobs: " + String.join(", ", mobNames));
 
         for (String mobName : mobNames) {
             Map<String, Object> stats = loadStats(config, mobName);
@@ -80,7 +80,7 @@ public class MobStatsManager {
                     if (statValue != 0 && statValue <= 100)
                         elementStats.put(nestedKey, statValue);
                     else
-                        LoggerUtil.warning("Found and ignored unusual stat " + statValue + " at " + path + "." + nestedKey + ", misconfiguration?");
+                        LoggerUtils.warning("Found and ignored unusual stat " + statValue + " at " + path + "." + nestedKey + ", misconfiguration?");
                 }
                 stats.put(statKey, elementStats);
             } else {
@@ -88,7 +88,7 @@ public class MobStatsManager {
                 if (statValue != 0 && statValue <= 100)
                     stats.put(statKey, statValue);
                 else
-                    LoggerUtil.warning("Found and ignored unusual stat " + statValue + " at " + path + ", misconfiguration?");
+                    LoggerUtils.warning("Found and ignored unusual stat " + statValue + " at " + path + ", misconfiguration?");
             }
         }
         return stats;
@@ -104,7 +104,7 @@ public class MobStatsManager {
 
         // Is there any existing same buff? Ignore if yes to prevent stacking.
         if(scheduledTasks.containsKey(key)){
-            LoggerUtil.debug("Temp stat key " + key + " already exists for this entity!");
+            LoggerUtils.debug("Temp stat key " + key + " already exists for this entity!");
             return false;
         }
 
@@ -121,7 +121,7 @@ public class MobStatsManager {
         // Store it for force cancellation
         scheduledTasks.put(key,task);
 
-        LoggerUtil.debug("Added temp stat " + key + ": " + value);
+        LoggerUtils.debug("Added temp stat " + key + ": " + value);
         return true;
     }
 
@@ -152,27 +152,27 @@ public class MobStatsManager {
 
             // If the restored value is 0, debuff/buff is gone, remove the stat
             if (restoredValue == 0) {
-                LoggerUtil.debug("Restored value is 0, removing from temp stats.");
+                LoggerUtils.debug("Restored value is 0, removing from temp stats.");
                 tempStats.remove(stat);
                 if(tempStats.isEmpty()){
-                    LoggerUtil.debug("No more temp stat for this mob, removing from temp stats map.");
+                    LoggerUtils.debug("No more temp stat for this mob, removing from temp stats map.");
                     mobTempStatsMap.remove(uuid);
                 }
             } else {
-                LoggerUtil.debug("Restored value is " + restoredValue + ", updating temp stats.");
+                LoggerUtils.debug("Restored value is " + restoredValue + ", updating temp stats.");
                 tempStats.put(stat, restoredValue);
             }
-            LoggerUtil.debug("Removed temp stat " + stat + ": " + value + " for " + uuid);
+            LoggerUtils.debug("Removed temp stat " + stat + ": " + value + " for " + uuid);
             scheduledTasks.remove(key);
         }
-        else LoggerUtil.debug("Failed to remove temp stat " + stat + ": " + value + " for " + uuid);
+        else LoggerUtils.debug("Failed to remove temp stat " + stat + ": " + value + " for " + uuid);
     }
 
     public void logMobStats() {
         for (Map.Entry<String, Map<String, Object>> entry : mobStatsMap.entrySet()) {
             String mobName = entry.getKey();
             Map<String, Object> stats = entry.getValue();
-            LoggerUtil.info("Stats for " + mobName + ": " + stats);
+            LoggerUtils.info("Stats for " + mobName + ": " + stats);
         }
     }
 
